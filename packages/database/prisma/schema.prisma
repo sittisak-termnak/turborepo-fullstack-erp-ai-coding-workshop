@@ -14,9 +14,14 @@ datasource db {
   provider = "postgresql"
 }
 
+/// The four roles of TOR section 2. Flat, not nested: section 2 states an Administrator is not
+/// automatically granted transaction approval rights, so only MANAGER approves purchase orders
+/// and adjusts stock. Mirrored by RoleSchema in @erp/contracts.
 enum Role {
-  ADMIN
-  STAFF
+  ADMINISTRATOR
+  PURCHASING_OFFICER
+  STORE_EMPLOYEE
+  MANAGER
 }
 
 model User {
@@ -25,7 +30,7 @@ model User {
   name         String
   /// Written by hashPassword() from @erp/database. Never returned by the API.
   passwordHash String
-  role         Role     @default(STAFF)
+  role         Role     @default(STORE_EMPLOYEE)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
