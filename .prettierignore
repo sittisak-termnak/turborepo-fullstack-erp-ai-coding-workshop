@@ -8,4 +8,5 @@ coverage
 .agents
 .claude
 .kiro/skills
+.kiro/settings
 skills-lock.json

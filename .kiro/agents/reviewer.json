@@ -12,6 +12,8 @@
   ],
   "permissions": {
     "rules": [
+      { "capability": "mcp", "effect": "deny" },
+      { "capability": "power", "effect": "deny" },
       { "capability": "fs_read", "match": ["./**"], "effect": "allow" },
       { "capability": "fs_write", "match": [".ai-review/**"], "effect": "allow" },
       {
