@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { ROLE_LABELS } from '@erp/contracts';
 import { LogOut } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,7 @@ export function UserMenu() {
   return (
     <div className="flex items-center gap-3 text-sm font-normal">
       <span>{user.name}</span>
-      <Badge variant="secondary">{user.role}</Badge>
+      <Badge variant="secondary">{ROLE_LABELS[user.role]}</Badge>
       <Button
         variant="ghost"
         size="sm"
@@ -25,7 +26,7 @@ export function UserMenu() {
         disabled={logout.isPending}
       >
         <LogOut />
-        Log out
+        ออกจากระบบ
       </Button>
     </div>
   );

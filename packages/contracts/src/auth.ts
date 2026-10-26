@@ -14,6 +14,18 @@ export const RoleSchema = z.enum([
 ]);
 export type Role = z.infer<typeof RoleSchema>;
 
+/**
+ * How each role is named on screen, in the Thai of TOR section 2. Typed as a total map, so adding
+ * a role to `RoleSchema` without naming it breaks the build instead of leaking an enum value into
+ * the interface.
+ */
+export const ROLE_LABELS: Record<Role, string> = {
+  ADMINISTRATOR: 'ผู้ดูแลระบบ',
+  PURCHASING_OFFICER: 'เจ้าหน้าที่จัดซื้อ',
+  STORE_EMPLOYEE: 'พนักงานสาขา',
+  MANAGER: 'ผู้จัดการ',
+};
+
 /** The signed-in user as the API exposes it (never includes the password hash). */
 export const UserSchema = z.object({
   id: z.string(),
