@@ -23,6 +23,14 @@ export const APP_ERRORS = {
     action: 'CORRECT_INPUT',
     message: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง กรุณาตรวจสอบแล้วกรอกใหม่อีกครั้ง',
   },
+  UNEXPECTED: {
+    action: 'RETRY',
+    message: 'ระบบขัดข้อง กรุณาลองใหม่อีกครั้ง หากยังไม่สำเร็จโปรดแจ้งผู้ดูแลระบบ',
+  },
+  UNREACHABLE: {
+    action: 'RETRY',
+    message: 'ไม่สามารถเชื่อมต่อระบบได้ กรุณาตรวจสอบการเชื่อมต่อแล้วลองใหม่อีกครั้ง',
+  },
 } as const satisfies Record<string, AppError>;
 
 export type AppErrorCode = keyof typeof APP_ERRORS;
