@@ -95,7 +95,7 @@ Register the module in `src/app.module.ts`. `PrismaService` is global, no import
 - Auth: every route already requires a signed-in user. Imports come from `../auth/auth.decorators.js`:
 
   ```ts
-  @Roles('ADMIN')                                   // optional: only these roles (else 403)
+  @Roles('MANAGER')                                 // optional: only these roles (else 403)
   @Implement(contract.customers.create)
   create(@CurrentUser() user: User) {               // User from @erp/contracts
     return implement(contract.customers.create).handler(({ input }) =>
@@ -112,7 +112,7 @@ Register the module in `src/app.module.ts`. `PrismaService` is global, no import
 - Read: `useQuery(orpc.customers.list.queryOptions())`, with input: `queryOptions({ input: { id } })`.
 - Write: `useMutation(orpc.customers.create.mutationOptions({ onSuccess: () => queryClient.invalidateQueries({ queryKey: orpc.customers.key() }) }))`.
 - Page component in `src/routes/<feature>.tsx`, registered in `src/router.tsx` as a child of `RootLayout` (which is inside `RequireAuth`, so the page is protected). Reusable pieces in `src/components/`.
-- The signed-in user: `const user = useCurrentUser()` from `@/lib/auth`. To hide UI by role: `user?.role === 'ADMIN'`. The API still enforces `@Roles`.
+- The signed-in user: `const user = useCurrentUser()` from `@/lib/auth`. To hide UI by role: `user?.role === 'MANAGER'`. The API still enforces `@Roles`.
 - Need a shadcn/ui primitive that is not in `src/components/ui` yet? From `apps/web`: `pnpm dlx shadcn@latest add <component>`.
 - Reference: `src/components/health-status.tsx`.
 
