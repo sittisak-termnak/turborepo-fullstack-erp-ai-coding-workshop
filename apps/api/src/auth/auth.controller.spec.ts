@@ -10,7 +10,12 @@ import { AuthController } from './auth.controller.js';
 import { SESSION_COOKIE, verifySessionToken } from './session-token.js';
 
 const secret = 'test-secret-that-is-at-least-32-characters';
-const admin: User = { id: 'u1', email: 'admin@erp.local', name: 'Admin User', role: 'ADMIN' };
+const admin: User = {
+  id: 'u1',
+  email: 'admin01@erp.local',
+  name: 'Admin One',
+  role: 'ADMINISTRATOR',
+};
 
 async function createController(findUnique = vi.fn()) {
   const moduleRef = await Test.createTestingModule({
@@ -46,7 +51,7 @@ describe('AuthController', () => {
     const res = fakeResponse();
 
     await expect(
-      call(controller.login(res), { email: 'Admin@erp.local', password: 'password' }),
+      call(controller.login(res), { email: 'Admin01@erp.local', password: 'password' }),
     ).resolves.toEqual(admin);
 
     const [name, token, options] = res.cookie.mock.calls[0]!;
@@ -62,7 +67,7 @@ describe('AuthController', () => {
     const res = fakeResponse();
 
     await expect(
-      call(controller.login(res), { email: 'admin@erp.local', password: 'wrong' }),
+      call(controller.login(res), { email: 'admin01@erp.local', password: 'wrong' }),
     ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
     expect(res.cookie).not.toHaveBeenCalled();
   });
@@ -90,4 +95,16 @@ describe('AuthController', () => {
     await expect(call(controller.me(admin), undefined)).resolves.toEqual({ user: admin });
     await expect(call(controller.me(undefined), undefined)).resolves.toEqual({ user: null });
   });
+
+  // call() runs the contract's output validation, so a role the contract rejects fails here.
+  it.each(['ADMINISTRATOR', 'PURCHASING_OFFICER', 'STORE_EMPLOYEE', 'MANAGER'] as const)(
+    'returns a signed-in %s',
+    async (role) => {
+      const controller = await createController();
+
+      await expect(call(controller.me({ ...admin, role }), undefined)).resolves.toEqual({
+        user: { ...admin, role },
+      });
+    },
+  );
 });
