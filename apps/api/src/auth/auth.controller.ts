@@ -2,8 +2,9 @@ import { Controller, Res } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { contract, type User } from '@erp/contracts';
 import { verifyPassword } from '@erp/database';
-import { Implement, implement, ORPCError } from '@orpc/nest';
+import { Implement, implement } from '@orpc/nest';
 import type { CookieOptions, Response } from 'express';
+import { appError } from '../common/app-error.js';
 import type { Env } from '../config/env.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { CurrentUser, Public } from './auth.decorators.js';
@@ -35,7 +36,7 @@ export class AuthController {
         select: { ...USER_SELECT, passwordHash: true },
       });
       if (!found || !(await verifyPassword(input.password, found.passwordHash))) {
-        throw new ORPCError('UNAUTHORIZED', { message: 'Invalid email or password' });
+        throw appError('UNAUTHORIZED', 'INVALID_CREDENTIALS');
       }
 
       const { passwordHash: _, ...user } = found;
