@@ -1,5 +1,29 @@
 import { describe, expect, it } from 'vitest';
-import { LoginInputSchema, SessionSchema } from './auth.js';
+import { LoginInputSchema, RoleSchema, SessionSchema } from './auth.js';
+
+describe('RoleSchema', () => {
+  // The four roles of TOR section 2. They are deliberately not nested: an Administrator
+  // does not automatically receive the transaction approval rights of a Manager.
+  it.each(['ADMINISTRATOR', 'PURCHASING_OFFICER', 'STORE_EMPLOYEE', 'MANAGER'])(
+    'accepts %s',
+    (role) => {
+      expect(RoleSchema.safeParse(role).success).toBe(true);
+    },
+  );
+
+  it.each(['ADMIN', 'STAFF'])('rejects the retired role %s', (role) => {
+    expect(RoleSchema.safeParse(role).success).toBe(false);
+  });
+
+  it('offers exactly the four roles and nothing else', () => {
+    expect([...RoleSchema.options].sort()).toEqual([
+      'ADMINISTRATOR',
+      'MANAGER',
+      'PURCHASING_OFFICER',
+      'STORE_EMPLOYEE',
+    ]);
+  });
+});
 
 describe('LoginInputSchema', () => {
   it('accepts an email and password', () => {

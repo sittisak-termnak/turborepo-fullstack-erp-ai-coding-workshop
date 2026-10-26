@@ -7,7 +7,12 @@ import { createQueryClient } from '@/lib/query-client';
 import { mockApi, unauthorized } from '@/test/mock-api';
 import { RequireAuth } from './require-auth';
 
-const staff = { id: '2', email: 'staff@erp.local', name: 'Staff User', role: 'STAFF' };
+const storeEmployee = {
+  id: '2',
+  email: 'staff_b01@erp.local',
+  name: 'Staff B01',
+  role: 'STORE_EMPLOYEE',
+};
 
 function LoginStub() {
   const location = useLocation();
@@ -35,7 +40,7 @@ describe('RequireAuth', () => {
   });
 
   it('renders the page for a signed-in user', async () => {
-    mockApi({ 'GET /auth/me': { user: staff } });
+    mockApi({ 'GET /auth/me': { user: storeEmployee } });
 
     renderProtected(<p>Orders page</p>);
 
@@ -53,7 +58,7 @@ describe('RequireAuth', () => {
   });
 
   it('redirects to /login when any API call answers 401', async () => {
-    mockApi({ 'GET /auth/me': { user: staff }, 'GET /health': unauthorized() });
+    mockApi({ 'GET /auth/me': { user: storeEmployee }, 'GET /health': unauthorized() });
 
     renderProtected(<HealthStatus />);
 

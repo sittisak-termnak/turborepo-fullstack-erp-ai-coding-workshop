@@ -5,13 +5,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import type { Role } from '@erp/contracts';
 import { isUnauthorized, safeRedirect, useSession } from '@/lib/auth';
 import { orpc } from '@/lib/orpc';
 
-// Created by packages/database/prisma/seed.ts.
-const demoAccounts = [
-  { email: 'admin@erp.local', role: 'ADMIN' },
-  { email: 'staff@erp.local', role: 'STAFF' },
+// Created by packages/database/prisma/seed.ts (DEMO_USERS in @erp/database). Typed so a role
+// renamed in the contract breaks the build here instead of drifting silently.
+const demoAccounts: { email: string; role: Role }[] = [
+  { email: 'admin01@erp.local', role: 'ADMINISTRATOR' },
+  { email: 'buyer01@erp.local', role: 'PURCHASING_OFFICER' },
+  { email: 'staff_b01@erp.local', role: 'STORE_EMPLOYEE' },
+  { email: 'staff_b02@erp.local', role: 'STORE_EMPLOYEE' },
+  { email: 'manager01@erp.local', role: 'MANAGER' },
 ];
 const DEMO_PASSWORD = 'password';
 

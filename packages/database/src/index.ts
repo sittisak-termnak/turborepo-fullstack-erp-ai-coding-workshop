@@ -2,6 +2,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from './generated/prisma/client.js';
 
 export * from './generated/prisma/client.js';
+export { DEMO_PASSWORD, DEMO_USERS } from './demo-users.js';
 export { hashPassword, verifyPassword } from './password.js';
 
 /** Prisma 7 talks to Postgres through a driver adapter (node-postgres). */

@@ -10,7 +10,12 @@ import { AuthGuard } from './auth.guard.js';
 import { createSessionToken, SESSION_COOKIE } from './session-token.js';
 
 const secret = 'test-secret-that-is-at-least-32-characters';
-const staff: User = { id: 'u1', email: 'staff@erp.local', name: 'Staff User', role: 'STAFF' };
+const storeEmployee: User = {
+  id: 'u1',
+  email: 'staff_b01@erp.local',
+  name: 'Staff B01',
+  role: 'STORE_EMPLOYEE',
+};
 
 class RoutesUnderTest {
   @Public()
@@ -18,8 +23,8 @@ class RoutesUnderTest {
 
   closed() {}
 
-  @Roles('ADMIN')
-  adminOnly() {}
+  @Roles('MANAGER')
+  managerOnly() {}
 }
 
 function setup(user: User | null) {
@@ -53,13 +58,13 @@ describe('AuthGuard', () => {
   });
 
   it('rejects a protected route without a session', async () => {
-    const { run } = setup(staff);
+    const { run } = setup(storeEmployee);
 
     await expect(run('closed').result).rejects.toBeInstanceOf(UnauthorizedException);
   });
 
   it('rejects a tampered cookie', async () => {
-    const { run, findUnique } = setup(staff);
+    const { run, findUnique } = setup(storeEmployee);
 
     await expect(
       run('closed', `${SESSION_COOKIE}=u1.9999999999999.forged`).result,
@@ -76,24 +81,34 @@ describe('AuthGuard', () => {
   });
 
   it('attaches the signed-in user to the request', async () => {
-    const { run } = setup(staff);
+    const { run } = setup(storeEmployee);
     const { request, result } = run('closed', sessionCookie('u1'));
 
     await expect(result).resolves.toBe(true);
-    expect(request.user).toEqual(staff);
+    expect(request.user).toEqual(storeEmployee);
   });
 
   it('rejects a user without the required role', async () => {
-    const { run } = setup(staff);
+    const { run } = setup(storeEmployee);
 
-    await expect(run('adminOnly', sessionCookie('u1')).result).rejects.toBeInstanceOf(
+    await expect(run('managerOnly', sessionCookie('u1')).result).rejects.toBeInstanceOf(
       ForbiddenException,
     );
   });
 
   it('allows a user with the required role', async () => {
-    const { run } = setup({ ...staff, role: 'ADMIN' });
+    const { run } = setup({ ...storeEmployee, role: 'MANAGER' });
 
-    await expect(run('adminOnly', sessionCookie('u1')).result).resolves.toBe(true);
+    await expect(run('managerOnly', sessionCookie('u1')).result).resolves.toBe(true);
+  });
+
+  // TOR section 2: the Administrator is not automatically granted transaction approval rights,
+  // so the roles must stay flat. This guards against anyone later making ADMINISTRATOR a superset.
+  it('refuses an Administrator a route reserved for a Manager', async () => {
+    const { run } = setup({ ...storeEmployee, role: 'ADMINISTRATOR' });
+
+    await expect(run('managerOnly', sessionCookie('u1')).result).rejects.toBeInstanceOf(
+      ForbiddenException,
+    );
   });
 });

@@ -12,6 +12,7 @@ Everything runs on Vitest. Tests are colocated with the code they cover.
 | `apps/api`           | `*.spec.ts`   | `pnpm turbo run test --filter=@erp/api`   |
 | `apps/web`           | `*.test.tsx`  | `pnpm turbo run test --filter=@erp/web`   |
 | `packages/contracts` | `*.test.ts`   | `pnpm turbo run test --filter=@erp/contracts` |
+| `packages/database`  | `*.test.ts`   | `pnpm turbo run test --filter=@erp/database`  |
 
 `pnpm test` runs all of them. Inside Docker prefix with `docker compose exec api`.
 
@@ -55,7 +56,7 @@ describe('CustomersController', () => {
 ```
 
 - `call()` runs the contract's input/output validation, so invalid input rejects just like a real request.
-- `AuthGuard` doesn't run in controller specs. Pass the user straight into the method: `call(controller.create(user), input)` with `const user: User = { id: 'u1', email: 'admin@erp.local', name: 'Admin', role: 'ADMIN' }`. Guard behaviour (`@Public`, `@Roles`) is covered in `src/auth/auth.guard.spec.ts`.
+- `AuthGuard` doesn't run in controller specs. Pass the user straight into the method: `call(controller.create(user), input)` with `const user: User = { id: 'u1', email: 'manager01@erp.local', name: 'Manager One', role: 'MANAGER' }`. Guard behaviour (`@Public`, `@Roles`) is covered in `src/auth/auth.guard.spec.ts`.
 - Stub only the Prisma methods the handler uses. Don't hit a real database.
 
 ## Web component test

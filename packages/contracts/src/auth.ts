@@ -1,7 +1,17 @@
 import { oc } from '@orpc/contract';
 import * as z from 'zod';
 
-export const RoleSchema = z.enum(['ADMIN', 'STAFF']);
+/**
+ * The four roles of TOR section 2. They are deliberately flat, not nested: section 2 states an
+ * Administrator is not automatically granted transaction approval rights, so only a MANAGER
+ * approves purchase orders and adjusts stock.
+ */
+export const RoleSchema = z.enum([
+  'ADMINISTRATOR',
+  'PURCHASING_OFFICER',
+  'STORE_EMPLOYEE',
+  'MANAGER',
+]);
 export type Role = z.infer<typeof RoleSchema>;
 
 /** The signed-in user as the API exposes it (never includes the password hash). */
