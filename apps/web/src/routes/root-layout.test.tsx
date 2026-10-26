@@ -10,6 +10,14 @@ import { RootLayout } from './root-layout';
 
 const manager = { id: '5', email: 'manager01@erp.local', name: 'Manager One', role: 'MANAGER' };
 
+/** The shell always renders the home page, which calls /health. */
+function mockSignedInManager() {
+  mockApi({
+    'GET /auth/me': { user: manager },
+    'GET /health': { api: 'ok', database: 'ok', timestamp: '2026-01-15T17:30:00.000Z' },
+  });
+}
+
 function renderShell() {
   const router = createMemoryRouter(
     [{ element: <RootLayout />, children: [{ path: '/', element: <HomePage /> }] }],
@@ -29,10 +37,7 @@ describe('RootLayout', () => {
   });
 
   it('names the application in Thai', async () => {
-    mockApi({
-      'GET /auth/me': { user: manager },
-      'GET /health': { api: 'ok', database: 'ok', timestamp: '2026-01-15T17:30:00.000Z' },
-    });
+    mockSignedInManager();
 
     renderShell();
 
@@ -40,10 +45,7 @@ describe('RootLayout', () => {
   });
 
   it('shows the signed-in user with a Thai role label and a Thai sign-out action', async () => {
-    mockApi({
-      'GET /auth/me': { user: manager },
-      'GET /health': { api: 'ok', database: 'ok', timestamp: '2026-01-15T17:30:00.000Z' },
-    });
+    mockSignedInManager();
 
     renderShell();
 
@@ -54,10 +56,7 @@ describe('RootLayout', () => {
   });
 
   it('writes the home page in Thai, with no leftover English copy', async () => {
-    mockApi({
-      'GET /auth/me': { user: manager },
-      'GET /health': { api: 'ok', database: 'ok', timestamp: '2026-01-15T17:30:00.000Z' },
-    });
+    mockSignedInManager();
 
     const container = renderShell();
     await screen.findByText('Manager One');

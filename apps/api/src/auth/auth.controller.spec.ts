@@ -68,7 +68,7 @@ describe('AuthController', () => {
 
     await expect(
       call(controller.login(res), { email: 'admin01@erp.local', password: 'wrong' }),
-    ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+    ).rejects.toMatchObject({ code: 'INVALID_CREDENTIALS', status: 401 });
     expect(res.cookie).not.toHaveBeenCalled();
   });
 
@@ -98,7 +98,7 @@ describe('AuthController', () => {
 
     await expect(
       call(controller.login(fakeResponse()), { email: 'nobody@erp.local', password: 'password' }),
-    ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+    ).rejects.toMatchObject({ code: 'INVALID_CREDENTIALS', status: 401 });
   });
 
   it('clears the cookie on logout', async () => {

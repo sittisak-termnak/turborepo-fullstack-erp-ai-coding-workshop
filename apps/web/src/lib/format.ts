@@ -11,25 +11,8 @@
  * 543-year shift on screen only would be a reporting hazard.
  */
 
-export const BANGKOK_TIME_ZONE = 'Asia/Bangkok';
+const BANGKOK_TIME_ZONE = 'Asia/Bangkok';
 const THAI_LOCALE = 'th-TH-u-ca-gregory';
-
-const dateTimeFormat = new Intl.DateTimeFormat(THAI_LOCALE, {
-  timeZone: BANGKOK_TIME_ZONE,
-  day: '2-digit',
-  month: 'short',
-  year: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-  hourCycle: 'h23',
-});
-
-const dateFormat = new Intl.DateTimeFormat(THAI_LOCALE, {
-  timeZone: BANGKOK_TIME_ZONE,
-  day: '2-digit',
-  month: 'short',
-  year: 'numeric',
-});
 
 const timeFormat = new Intl.DateTimeFormat(THAI_LOCALE, {
   timeZone: BANGKOK_TIME_ZONE,
@@ -38,20 +21,10 @@ const timeFormat = new Intl.DateTimeFormat(THAI_LOCALE, {
   hourCycle: 'h23',
 });
 
-const moneyFormat = new Intl.NumberFormat('en-US', {
+const moneyFormat = new Intl.NumberFormat(THAI_LOCALE, {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
-
-/** A date and time on the Bangkok clock, e.g. `16 ม.ค. 2026 00:30`. */
-export function formatDateTime(instant: string | Date): string {
-  return dateTimeFormat.format(new Date(instant));
-}
-
-/** A calendar day on the Bangkok clock, e.g. `16 ม.ค. 2026`. */
-export function formatDate(instant: string | Date): string {
-  return dateFormat.format(new Date(instant));
-}
 
 /** A time of day on the Bangkok clock, e.g. `00:30`. */
 export function formatTime(instant: string | Date): string {

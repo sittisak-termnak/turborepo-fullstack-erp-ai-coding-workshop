@@ -3,7 +3,6 @@ import { render, screen, within } from '@testing-library/react';
 import { APP_ERRORS } from '@erp/contracts';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createQueryClient } from '@/lib/query-client';
-import { mockApi } from '@/test/mock-api';
 import { HealthStatus } from './health-status';
 
 function renderWithQueryClient(ui: React.ReactElement) {
@@ -52,14 +51,42 @@ describe('HealthStatus', () => {
     expect(await screen.findByText(/ตรวจสอบล่าสุด 00:30/)).toBeInTheDocument();
   });
 
-  it('shows the shared Thai message when the API cannot be reached', async () => {
-    mockApi({});
+  it('shows the shared Thai message when the request never reached the API', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.reject(new TypeError('Failed to fetch'))),
+    );
 
     renderWithQueryClient(<HealthStatus />);
 
     // The query client retries once before giving up, so this outlasts the retry delay.
     expect(
       await screen.findByText(APP_ERRORS.UNREACHABLE.message, undefined, { timeout: 4000 }),
+    ).toBeInTheDocument();
+  });
+
+  // The API's own Thai message is more specific than "check your connection", so it wins.
+  it('shows the message the API returned when the API answered with an error', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        Response.json(
+          {
+            defined: false,
+            code: 'INTERNAL_SERVER_ERROR',
+            status: 500,
+            message: APP_ERRORS.UNEXPECTED.message,
+            data: { code: 'UNEXPECTED', action: 'RETRY' },
+          },
+          { status: 500 },
+        ),
+      ),
+    );
+
+    renderWithQueryClient(<HealthStatus />);
+
+    expect(
+      await screen.findByText(APP_ERRORS.UNEXPECTED.message, undefined, { timeout: 4000 }),
     ).toBeInTheDocument();
   });
 });

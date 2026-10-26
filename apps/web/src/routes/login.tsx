@@ -1,6 +1,4 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { APP_ERRORS } from '@erp/contracts';
-import { ORPCError } from '@orpc/client';
 import { useState } from 'react';
 import { Navigate, useSearchParams } from 'react-router';
 import { Button } from '@/components/ui/button';
@@ -8,15 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { safeRedirect, useSession } from '@/lib/auth';
+import { errorMessage } from '@/lib/errors';
 import { orpc } from '@/lib/orpc';
-
-/**
- * The API answers with the actionable Thai message from the shared catalogue, so it is displayed
- * as-is. Only a request that never reached the API needs a message from this side.
- */
-function signInErrorMessage(error: unknown): string {
-  return error instanceof ORPCError ? error.message : APP_ERRORS.UNREACHABLE.message;
-}
 
 export function LoginPage() {
   const [searchParams] = useSearchParams();
@@ -74,7 +65,7 @@ export function LoginPage() {
             </div>
             {login.error && (
               <p role="alert" className="text-sm text-destructive">
-                {signInErrorMessage(login.error)}
+                {errorMessage(login.error)}
               </p>
             )}
             <Button type="submit" className="w-full" disabled={login.isPending}>

@@ -1,31 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { formatDate, formatDateTime, formatMoney, formatTime } from './format';
+import { formatMoney, formatTime } from './format';
 
 // The tests run with TZ=UTC (see vite.config.ts), so an instant late in the UTC day lands on the
-// next Bangkok day. A formatter that forgot the zone would print 15 January and 17:30 instead.
+// next Bangkok day. A formatter that forgot the zone would print 17:30 instead.
 const lateUtcEvening = '2026-01-15T17:30:00.000Z';
 
-describe('formatDateTime', () => {
-  it('renders an instant on the Bangkok clock, not the host clock', () => {
-    const formatted = formatDateTime(lateUtcEvening);
-
-    expect(formatted).toContain('00:30');
-    expect(formatted).toContain('16');
-    expect(formatted).not.toContain('17:30');
-    expect(formatted).not.toContain('15');
+describe('formatTime', () => {
+  it('renders the time of day on the Bangkok clock, not the host clock', () => {
+    expect(formatTime(lateUtcEvening)).toBe('00:30');
   });
 
   it('accepts a Date as well as an ISO string', () => {
-    expect(formatDateTime(new Date(lateUtcEvening))).toBe(formatDateTime(lateUtcEvening));
-  });
-});
-
-describe('formatDate', () => {
-  it('renders the Bangkok calendar day without a time', () => {
-    const formatted = formatDate(lateUtcEvening);
-
-    expect(formatted).toContain('16');
-    expect(formatted).not.toContain('00:30');
+    expect(formatTime(new Date(lateUtcEvening))).toBe('00:30');
   });
 });
 
@@ -42,11 +28,5 @@ describe('formatMoney', () => {
 
   it('keeps a negative amount signed', () => {
     expect(formatMoney(-42.5)).toBe('-42.50');
-  });
-});
-
-describe('formatTime', () => {
-  it('renders the time of day on the Bangkok clock', () => {
-    expect(formatTime(lateUtcEvening)).toBe('00:30');
   });
 });

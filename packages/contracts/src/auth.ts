@@ -1,5 +1,6 @@
 import { oc } from '@orpc/contract';
 import * as z from 'zod';
+import { routeError } from './errors.js';
 
 /**
  * The four roles of TOR section 2. They are deliberately flat, not nested: section 2 states an
@@ -54,6 +55,9 @@ export const authContract = {
       summary: 'Sign in with email and password',
       tags: ['Auth'],
     })
+    // Declared on the route so the Thai message and its action are part of the published contract
+    // and the handler cannot invent an error shape of its own (NFR-04).
+    .errors({ INVALID_CREDENTIALS: routeError('INVALID_CREDENTIALS', 401) })
     .input(LoginInputSchema)
     .output(UserSchema),
   logout: oc.route({ method: 'POST', path: '/auth/logout', summary: 'Sign out', tags: ['Auth'] }),

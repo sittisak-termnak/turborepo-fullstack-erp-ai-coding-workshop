@@ -1,3 +1,5 @@
+import * as z from 'zod';
+
 /**
  * The Thai error messages the API returns and the screens display, in one place.
  *
@@ -11,7 +13,12 @@
  */
 
 /** What the user should do next, per TOR section 6.2. */
-export type ErrorAction = 'CORRECT_INPUT' | 'RETRY';
+export const ErrorActionSchema = z.enum(['CORRECT_INPUT', 'RETRY']);
+export type ErrorAction = z.infer<typeof ErrorActionSchema>;
+
+/** The payload every API error carries, declared here so neither app hand-writes the shape. */
+export const AppErrorDataSchema = z.object({ action: ErrorActionSchema });
+export type AppErrorData = z.infer<typeof AppErrorDataSchema>;
 
 export type AppError = {
   readonly action: ErrorAction;
@@ -27,6 +34,7 @@ export const APP_ERRORS = {
     action: 'RETRY',
     message: 'ระบบขัดข้อง กรุณาลองใหม่อีกครั้ง หากยังไม่สำเร็จโปรดแจ้งผู้ดูแลระบบ',
   },
+  /** Raised by the web app alone, when a request never reached the API. */
   UNREACHABLE: {
     action: 'RETRY',
     message: 'ไม่สามารถเชื่อมต่อระบบได้ กรุณาตรวจสอบการเชื่อมต่อแล้วลองใหม่อีกครั้ง',
@@ -34,3 +42,8 @@ export const APP_ERRORS = {
 } as const satisfies Record<string, AppError>;
 
 export type AppErrorCode = keyof typeof APP_ERRORS;
+
+/** Declares a catalogue entry as an oRPC route error, so the contract carries the Thai text. */
+export function routeError(code: AppErrorCode, status: number) {
+  return { status, message: APP_ERRORS[code].message, data: AppErrorDataSchema };
+}

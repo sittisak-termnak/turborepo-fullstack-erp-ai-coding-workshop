@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { APP_ERRORS } from '@erp/contracts';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { errorMessage } from '@/lib/errors';
 import { formatTime } from '@/lib/format';
 import { orpc } from '@/lib/orpc';
 
@@ -24,7 +24,7 @@ export function HealthStatus() {
             ? 'กำลังตรวจสอบ…'
             : health.data
               ? `ตรวจสอบล่าสุด ${formatTime(health.data.timestamp)}`
-              : APP_ERRORS.UNREACHABLE.message}
+              : errorMessage(health.error)}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">

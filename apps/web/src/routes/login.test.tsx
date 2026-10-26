@@ -5,7 +5,7 @@ import { APP_ERRORS } from '@erp/contracts';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createQueryClient } from '@/lib/query-client';
-import { mockApi, unauthorized } from '@/test/mock-api';
+import { appErrorResponse, mockApi } from '@/test/mock-api';
 import { LoginPage } from './login';
 
 const admin = { id: '1', email: 'admin01@erp.local', name: 'Admin One', role: 'ADMINISTRATOR' };
@@ -56,7 +56,7 @@ describe('LoginPage', () => {
   it('shows the Thai message the API returned for wrong credentials', async () => {
     mockApi({
       'GET /auth/me': { user: null },
-      'POST /auth/login': unauthorized(APP_ERRORS.INVALID_CREDENTIALS.message),
+      'POST /auth/login': appErrorResponse('INVALID_CREDENTIALS', 401),
     });
 
     renderLogin();

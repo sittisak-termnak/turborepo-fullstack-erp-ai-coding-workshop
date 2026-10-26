@@ -1,3 +1,4 @@
+import { APP_ERRORS, type AppErrorCode } from '@erp/contracts';
 import { vi } from 'vitest';
 
 /**
@@ -17,10 +18,20 @@ export function mockApi(routes: Record<string, unknown>) {
   return fetch;
 }
 
-/** The 401 the API sends for a missing session or a wrong password. */
+/** The 401 the API sends for a missing session, which signs the user out. */
 export function unauthorized(message = 'Unauthorized') {
   return Response.json(
     { defined: false, code: 'UNAUTHORIZED', status: 401, message },
     { status: 401 },
   );
+}
+
+/**
+ * An error the contract declares, as oRPC puts it on the wire: the Thai message and the
+ * correct-input-or-retry action from `APP_ERRORS`. Use this for a handler that rejected, rather
+ * than `unauthorized()`, which stands for having no session at all.
+ */
+export function appErrorResponse(code: AppErrorCode, status: number) {
+  const { message, action } = APP_ERRORS[code];
+  return Response.json({ defined: true, code, status, message, data: { action } }, { status });
 }
