@@ -8,10 +8,13 @@ import { Label } from '@/components/ui/label';
 import { isUnauthorized, safeRedirect, useSession } from '@/lib/auth';
 import { orpc } from '@/lib/orpc';
 
-// Created by packages/database/prisma/seed.ts.
+// Created by packages/database/prisma/seed.ts (DEMO_USERS in @erp/database).
 const demoAccounts = [
-  { email: 'admin@erp.local', role: 'ADMIN' },
-  { email: 'staff@erp.local', role: 'STAFF' },
+  { email: 'admin01@erp.local', role: 'ADMINISTRATOR' },
+  { email: 'buyer01@erp.local', role: 'PURCHASING_OFFICER' },
+  { email: 'staff_b01@erp.local', role: 'STORE_EMPLOYEE' },
+  { email: 'staff_b02@erp.local', role: 'STORE_EMPLOYEE' },
+  { email: 'manager01@erp.local', role: 'MANAGER' },
 ];
 const DEMO_PASSWORD = 'password';
 
