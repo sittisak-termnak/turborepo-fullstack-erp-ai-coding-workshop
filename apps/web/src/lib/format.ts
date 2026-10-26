@@ -31,6 +31,13 @@ const dateFormat = new Intl.DateTimeFormat(THAI_LOCALE, {
   year: 'numeric',
 });
 
+const timeFormat = new Intl.DateTimeFormat(THAI_LOCALE, {
+  timeZone: BANGKOK_TIME_ZONE,
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+});
+
 const moneyFormat = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
@@ -44,6 +51,11 @@ export function formatDateTime(instant: string | Date): string {
 /** A calendar day on the Bangkok clock, e.g. `16 ม.ค. 2026`. */
 export function formatDate(instant: string | Date): string {
   return dateFormat.format(new Date(instant));
+}
+
+/** A time of day on the Bangkok clock, e.g. `00:30`. */
+export function formatTime(instant: string | Date): string {
+  return timeFormat.format(new Date(instant));
 }
 
 /** A monetary amount with exactly two decimal places, e.g. `1,234.50`. */

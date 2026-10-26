@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatDate, formatDateTime, formatMoney } from './format';
+import { formatDate, formatDateTime, formatMoney, formatTime } from './format';
 
 // The tests run with TZ=UTC (see vite.config.ts), so an instant late in the UTC day lands on the
 // next Bangkok day. A formatter that forgot the zone would print 15 January and 17:30 instead.
@@ -42,5 +42,11 @@ describe('formatMoney', () => {
 
   it('keeps a negative amount signed', () => {
     expect(formatMoney(-42.5)).toBe('-42.50');
+  });
+});
+
+describe('formatTime', () => {
+  it('renders the time of day on the Bangkok clock', () => {
+    expect(formatTime(lateUtcEvening)).toBe('00:30');
   });
 });
