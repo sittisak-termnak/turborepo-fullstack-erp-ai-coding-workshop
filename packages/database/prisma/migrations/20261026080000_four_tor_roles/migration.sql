@@ -15,11 +15,12 @@ ALTER TABLE "User" ALTER COLUMN "role" DROP DEFAULT;
 
 ALTER TABLE "User"
   ALTER COLUMN "role" TYPE "Role"
+-- No ELSE branch: the old type only ever held ADMIN and STAFF, so an unmapped value means the
+-- database is not in a state this migration understands. Failing loudly beats coercing silently.
   USING (
     CASE "role"::text
       WHEN 'ADMIN' THEN 'ADMINISTRATOR'
       WHEN 'STAFF' THEN 'STORE_EMPLOYEE'
-      ELSE 'STORE_EMPLOYEE'
     END
   )::"Role";
 
