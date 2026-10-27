@@ -2,6 +2,7 @@ import { Controller } from '@nestjs/common';
 import { contract, type StockItem, type User } from '@erp/contracts';
 import { Implement, implement } from '@orpc/nest';
 import { CurrentUser } from '../auth/auth.decorators.js';
+import { assertStoreAccess } from '../auth/store-scope.js';
 import { PrismaService } from '../database/prisma.service.js';
 
 type StockRow = {
@@ -41,8 +42,23 @@ export class StockController {
     return implement(contract.stock.list).handler(async ({ input }) => {
       // NFR-01: the row-level rule is enforced here, not left to the UI to hide a filter field.
       // A Store employee's search is forced to their own store regardless of any `store` text
-      // they send; `''` for a storeless employee matches no row rather than every row.
-      const storeId = user.role === 'STORE_EMPLOYEE' ? (user.storeId ?? '') : undefined;
+      // they send. assertStoreAccess is the documented convention for exactly this (it also
+      // records the outcome, NFR-03); a storeless employee has no store to load, so there is
+      // nothing to assert and nothing they may see.
+      let storeId: string | undefined;
+      if (user.role === 'STORE_EMPLOYEE') {
+        const ownStore = user.storeId
+          ? await this.prisma.store.findUnique({ where: { id: user.storeId } })
+          : null;
+        if (!ownStore) return { items: [], total: 0 };
+
+        await assertStoreAccess(this.prisma, user, {
+          action: 'stock.list',
+          target: ownStore.code,
+          targetStoreId: ownStore.id,
+        });
+        storeId = ownStore.id;
+      }
 
       const where = {
         ...(storeId !== undefined ? { storeId } : {}),

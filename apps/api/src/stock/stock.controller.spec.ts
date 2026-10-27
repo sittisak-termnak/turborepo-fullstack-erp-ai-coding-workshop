@@ -119,7 +119,16 @@ function stubPrisma(seed: Row[] = rowsNewestLast) {
     return true;
   };
 
+  const storesById: Record<string, { id: string; code: string; name: string }> = {
+    'store-b01': { id: 'store-b01', code: 'B01', name: 'Branch 01' },
+    'store-b02': { id: 'store-b02', code: 'B02', name: 'Branch 02' },
+  };
+
   return {
+    store: {
+      findUnique: vi.fn(async ({ where }: { where: { id: string } }) => storesById[where.id]),
+    },
+    auditLog: { create: vi.fn(async ({ data }: { data: unknown }) => data) },
     productStore: {
       findMany: vi.fn(
         async ({
@@ -242,6 +251,45 @@ describe('StockController.list', () => {
 
     expect(page.items).toEqual([]);
     expect(page.total).toBe(0);
+  });
+
+  // NFR-01/NFR-03: assertStoreAccess is the documented convention for a store-scoped route, and
+  // it records the outcome either way.
+  it("records an ALLOWED audit entry for a Store employee's own-store search", async () => {
+    const prisma = stubPrisma();
+    const controller = await createController(prisma);
+
+    await call(controller.list(staffB01), { page: 1, pageSize: 20 });
+
+    expect(prisma.auditLog.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        actorId: 'u-staff-b01',
+        actorRole: 'STORE_EMPLOYEE',
+        action: 'stock.list',
+        target: 'B01',
+        outcome: 'ALLOWED',
+      }),
+    });
+  });
+
+  it('returns no rows and records no audit entry for a Store employee with no store assignment', async () => {
+    const storeless: User = { ...staffB01, storeId: null };
+    const prisma = stubPrisma();
+    const controller = await createController(prisma);
+
+    const page = await call(controller.list(storeless), { page: 1, pageSize: 20 });
+
+    expect(page).toEqual({ items: [], total: 0 });
+    expect(prisma.auditLog.create).not.toHaveBeenCalled();
+  });
+
+  it('does not audit a cross-store role, which touches no single store', async () => {
+    const prisma = stubPrisma();
+    const controller = await createController(prisma);
+
+    await call(controller.list(manager), { page: 1, pageSize: 20 });
+
+    expect(prisma.auditLog.create).not.toHaveBeenCalled();
   });
 
   it('returns an empty page and a zero total for a filter that matches nothing', async () => {
