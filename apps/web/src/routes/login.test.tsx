@@ -1,9 +1,11 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { APP_ERRORS } from '@erp/contracts';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createQueryClient } from '@/lib/query-client';
-import { mockApi, unauthorized } from '@/test/mock-api';
+import { appErrorResponse, mockApi } from '@/test/mock-api';
 import { LoginPage } from './login';
 
 const admin = { id: '1', email: 'admin01@erp.local', name: 'Admin One', role: 'ADMINISTRATOR' };
@@ -17,17 +19,18 @@ function renderLogin(url = '/login') {
     ],
     { initialEntries: [url] },
   );
-  render(
+  const { container } = render(
     <QueryClientProvider client={createQueryClient()}>
       <RouterProvider router={router} />
     </QueryClientProvider>,
   );
+  return container;
 }
 
 async function signIn(email: string, password: string) {
-  fireEvent.change(await screen.findByLabelText('Email'), { target: { value: email } });
-  fireEvent.change(screen.getByLabelText('Password'), { target: { value: password } });
-  fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+  fireEvent.change(await screen.findByLabelText('อีเมล'), { target: { value: email } });
+  fireEvent.change(screen.getByLabelText('รหัสผ่าน'), { target: { value: password } });
+  fireEvent.click(screen.getByRole('button', { name: 'เข้าสู่ระบบ' }));
 }
 
 describe('LoginPage', () => {
@@ -49,26 +52,79 @@ describe('LoginPage', () => {
     });
   });
 
-  it('shows an error for wrong credentials', async () => {
+  // The actionable Thai text is the API's, from the shared catalogue, not a string on this screen.
+  it('shows the Thai message the API returned for wrong credentials', async () => {
     mockApi({
       'GET /auth/me': { user: null },
-      'POST /auth/login': unauthorized('Invalid email or password'),
+      'POST /auth/login': appErrorResponse('INVALID_CREDENTIALS', 401),
     });
 
     renderLogin();
     await signIn('admin01@erp.local', 'wrong');
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Invalid email or password.');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      APP_ERRORS.INVALID_CREDENTIALS.message,
+    );
   });
 
-  it('fills in a demo account', async () => {
-    mockApi({ 'GET /auth/me': { user: null } });
+  it('shows the Thai unreachable message when the API cannot be reached', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (request: Request) => {
+        if (new URL(request.url).pathname.endsWith('/auth/me'))
+          return Response.json({ user: null });
+        throw new TypeError('Failed to fetch');
+      }),
+    );
 
     renderLogin();
-    fireEvent.click(await screen.findByText('staff_b01@erp.local'));
+    await signIn('admin01@erp.local', 'password');
 
-    expect(screen.getByLabelText('Email')).toHaveValue('staff_b01@erp.local');
-    expect(screen.getByLabelText('Password')).toHaveValue('password');
+    expect(await screen.findByRole('alert')).toHaveTextContent(APP_ERRORS.UNREACHABLE.message);
+  });
+
+  it('no longer displays demo credentials', async () => {
+    mockApi({ 'GET /auth/me': { user: null } });
+
+    const container = renderLogin();
+    await screen.findByLabelText('อีเมล');
+
+    expect(container.textContent).not.toMatch(/@erp\.local/);
+    expect(container.textContent).not.toMatch(/password/i);
+    expect(screen.queryByText(/ADMINISTRATOR|STORE_EMPLOYEE|MANAGER/)).not.toBeInTheDocument();
+  });
+
+  it('gives every input an accessible name', async () => {
+    mockApi({ 'GET /auth/me': { user: null } });
+
+    const container = renderLogin();
+    await screen.findByLabelText('อีเมล');
+
+    const inputs = [...container.querySelectorAll('input')];
+    expect(inputs).toHaveLength(2);
+    for (const input of inputs) expect(input).toHaveAccessibleName();
+  });
+
+  // NFR-06: the form must be completable and submittable without a mouse.
+  it('can be completed and submitted by keyboard alone', async () => {
+    const user = userEvent.setup();
+    const fetch = mockApi({ 'GET /auth/me': { user: null }, 'POST /auth/login': admin });
+
+    renderLogin('/login?redirect=%2Forders');
+    await screen.findByLabelText('อีเมล');
+
+    await user.tab();
+    expect(screen.getByLabelText('อีเมล')).toHaveFocus();
+    await user.keyboard('admin01@erp.local');
+    await user.tab();
+    expect(screen.getByLabelText('รหัสผ่าน')).toHaveFocus();
+    await user.keyboard('password');
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'เข้าสู่ระบบ' })).toHaveFocus();
+    await user.keyboard('{Enter}');
+
+    expect(await screen.findByText('Orders page')).toBeInTheDocument();
+    expect(fetch.mock.calls.some(([request]) => request.method === 'POST')).toBe(true);
   });
 
   it('ignores a redirect to another site', async () => {

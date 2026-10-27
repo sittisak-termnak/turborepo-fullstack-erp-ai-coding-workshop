@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { LoginInputSchema, RoleSchema, SessionSchema } from './auth.js';
+import { LoginInputSchema, ROLE_LABELS, RoleSchema, SessionSchema } from './auth.js';
 
 describe('RoleSchema', () => {
   // The four roles of TOR section 2. They are deliberately not nested: an Administrator
@@ -56,5 +56,14 @@ describe('SessionSchema', () => {
     });
 
     expect(result.success).toBe(false);
+  });
+});
+
+describe('ROLE_LABELS', () => {
+  it('gives every role a Thai label', () => {
+    for (const role of RoleSchema.options) {
+      expect(ROLE_LABELS[role], role).toMatch(/[\u0E00-\u0E7F]/);
+      expect(ROLE_LABELS[role], role).not.toMatch(/[A-Za-z]/);
+    }
   });
 });

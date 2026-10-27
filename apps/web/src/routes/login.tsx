@@ -5,20 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import type { Role } from '@erp/contracts';
-import { isUnauthorized, safeRedirect, useSession } from '@/lib/auth';
+import { safeRedirect, useSession } from '@/lib/auth';
+import { errorMessage } from '@/lib/errors';
 import { orpc } from '@/lib/orpc';
-
-// Created by packages/database/prisma/seed.ts (DEMO_USERS in @erp/database). Typed so a role
-// renamed in the contract breaks the build here instead of drifting silently.
-const demoAccounts: { email: string; role: Role }[] = [
-  { email: 'admin01@erp.local', role: 'ADMINISTRATOR' },
-  { email: 'buyer01@erp.local', role: 'PURCHASING_OFFICER' },
-  { email: 'staff_b01@erp.local', role: 'STORE_EMPLOYEE' },
-  { email: 'staff_b02@erp.local', role: 'STORE_EMPLOYEE' },
-  { email: 'manager01@erp.local', role: 'MANAGER' },
-];
-const DEMO_PASSWORD = 'password';
 
 export function LoginPage() {
   const [searchParams] = useSearchParams();
@@ -41,10 +30,10 @@ export function LoginPage() {
     <div className="flex min-h-svh items-center justify-center bg-muted p-6">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-xl">ERP Workshop</CardTitle>
-          <CardDescription>Sign in to continue</CardDescription>
+          <CardTitle className="text-xl">ระบบจัดการธุรกิจค้าปลีก</CardTitle>
+          <CardDescription>กรุณาเข้าสู่ระบบเพื่อใช้งาน</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent>
           <form
             className="space-y-4"
             onSubmit={(event) => {
@@ -53,7 +42,7 @@ export function LoginPage() {
             }}
           >
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">อีเมล</Label>
               <Input
                 id="email"
                 type="email"
@@ -64,7 +53,7 @@ export function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">รหัสผ่าน</Label>
               <Input
                 id="password"
                 type="password"
@@ -76,33 +65,13 @@ export function LoginPage() {
             </div>
             {login.error && (
               <p role="alert" className="text-sm text-destructive">
-                {isUnauthorized(login.error)
-                  ? 'Invalid email or password.'
-                  : 'Could not sign in. Is the API running?'}
+                {errorMessage(login.error)}
               </p>
             )}
             <Button type="submit" className="w-full" disabled={login.isPending}>
-              {login.isPending ? 'Signing in…' : 'Sign in'}
+              {login.isPending ? 'กำลังเข้าสู่ระบบ…' : 'เข้าสู่ระบบ'}
             </Button>
           </form>
-
-          <div className="space-y-2 rounded-md border bg-muted/50 p-3 text-sm">
-            <p className="font-medium">Demo accounts (password: {DEMO_PASSWORD})</p>
-            {demoAccounts.map((account) => (
-              <button
-                key={account.email}
-                type="button"
-                className="flex w-full justify-between text-left text-muted-foreground hover:text-foreground"
-                onClick={() => {
-                  setEmail(account.email);
-                  setPassword(DEMO_PASSWORD);
-                }}
-              >
-                <span>{account.email}</span>
-                <span>{account.role}</span>
-              </button>
-            ))}
-          </div>
         </CardContent>
       </Card>
     </div>

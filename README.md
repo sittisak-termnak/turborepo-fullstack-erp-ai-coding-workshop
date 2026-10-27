@@ -52,7 +52,8 @@ The first start takes a few minutes. When the logs settle:
 | API docs (Swagger)   | http://localhost:3000/api/docs      |
 | Postgres (for tools) | `localhost:5432` user/pass/db `erp` |
 
-Sign in with one of the demo accounts (they are also listed on the login page):
+Sign in with one of the demo accounts. The login page no longer lists them, so this table is the
+only place they are written down:
 
 | Email                 | Password   | Role                 |
 | --------------------- | ---------- | -------------------- |
@@ -62,7 +63,7 @@ Sign in with one of the demo accounts (they are also listed on the login page):
 | `staff_b02@erp.local` | `password` | `STORE_EMPLOYEE`     |
 | `manager01@erp.local` | `password` | `MANAGER`            |
 
-The home page then shows a **System status** card. **API ✅ / Database ✅** means the full chain works: React → typed client → Vite proxy → NestJS → Prisma → Postgres.
+The home page then shows a **สถานะระบบ** (system status) card. **API ✅ ปกติ / ฐานข้อมูล ✅ ปกติ** means the full chain works: React → typed client → Vite proxy → NestJS → Prisma → Postgres. The interface is written in Thai throughout, with Asia/Bangkok timestamps and two-decimal amounts from `apps/web/src/lib/format.ts`.
 
 Edit any file and it reloads automatically: React (HMR), NestJS (restart), and the shared packages (rebuild).
 
