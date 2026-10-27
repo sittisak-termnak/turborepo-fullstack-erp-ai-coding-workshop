@@ -39,6 +39,14 @@ export const APP_ERRORS = {
     action: 'RETRY',
     message: 'ไม่สามารถเชื่อมต่อระบบได้ กรุณาตรวจสอบการเชื่อมต่อแล้วลองใหม่อีกครั้ง',
   },
+  STORE_CODE_TAKEN: {
+    action: 'CORRECT_INPUT',
+    message: 'รหัสสาขานี้ถูกใช้แล้ว กรุณาใช้รหัสอื่นแล้วบันทึกอีกครั้ง',
+  },
+  STORE_NOT_FOUND: {
+    action: 'CORRECT_INPUT',
+    message: 'ไม่พบสาขาที่ระบุ อาจถูกลบไปแล้ว กรุณาโหลดรายการใหม่แล้วลองอีกครั้ง',
+  },
 } as const satisfies Record<string, AppError>;
 
 export type AppErrorCode = keyof typeof APP_ERRORS;
