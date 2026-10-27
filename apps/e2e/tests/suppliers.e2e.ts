@@ -38,12 +38,19 @@ test.describe('supplier maintenance', () => {
     await page.goto('/suppliers?pageSize=1');
     await expect(page.getByText('หน้า 1 จาก')).toBeVisible();
 
-    let found = await page.getByRole('row', { name: new RegExp(code) }).count();
-    while (found === 0 && (await page.getByRole('button', { name: 'หน้าถัดไป' }).isEnabled())) {
-      await page.getByRole('button', { name: 'หน้าถัดไป' }).click();
-      found = await page.getByRole('row', { name: new RegExp(code) }).count();
+    // Walk forward a page at a time. The row is not always on page 1: the uniqueness test below
+    // creates its own supplier, and newest-first puts whichever was written last in front. After
+    // each click, wait for the pager to show the new page before counting, the way
+    // stores.e2e.ts does. `count()` does not auto-wait, so counting straight after a click reads
+    // the page still on screen, reports zero, and clicks past the page the row is actually on.
+    const listed = page.getByRole('row', { name: new RegExp(code) });
+    const nextPage = page.getByRole('button', { name: 'หน้าถัดไป' });
+
+    for (let current = 1; (await listed.count()) === 0 && (await nextPage.isEnabled()); current++) {
+      await nextPage.click();
+      await expect(page.getByText(`หน้า ${current + 1} จาก`)).toBeVisible();
     }
-    await expect(page.getByRole('row', { name: new RegExp(code) })).toContainText(name);
+    await expect(listed).toContainText(name);
   });
 });
 

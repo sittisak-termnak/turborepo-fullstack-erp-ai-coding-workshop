@@ -21,10 +21,11 @@ export function RootLayout() {
                   ค้นหาคลังสินค้า
                 </Link>
                 {/*
-                  Offering the way in, not enforcing it: the API refuses store and product
-                  maintenance to every other role (see apps/api/src/stores, apps/api/src/products),
-                  and a hidden link is never the enforcement. This only keeps a Manager from being
-                  sent to a screen that would answer 403.
+                  Offering the way in, not enforcing it: the API refuses store, product and
+                  supplier maintenance to every other role (see apps/api/src/stores,
+                  apps/api/src/products, apps/api/src/suppliers), and a hidden link is never the
+                  enforcement. This only keeps a Manager from being sent to a screen that would
+                  answer 403.
                 */}
                 {user.role === 'ADMINISTRATOR' && (
                   <>
@@ -40,14 +41,14 @@ export function RootLayout() {
                     >
                       จัดการสินค้า
                     </Link>
+                    <Link
+                      to="/suppliers"
+                      className="text-sm text-muted-foreground hover:text-foreground"
+                    >
+                      จัดการซัพพลายเออร์
+                    </Link>
                   </>
                 )}
-                <Link
-                  to="/suppliers"
-                  className="text-sm text-muted-foreground hover:text-foreground"
-                >
-                  จัดการซัพพลายเออร์
-                </Link>
               </nav>
             )}
           </div>
