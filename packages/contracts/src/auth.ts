@@ -33,6 +33,12 @@ export const UserSchema = z.object({
   email: z.email(),
   name: z.string(),
   role: RoleSchema,
+  /**
+   * The user's store assignment, or null. Required for STORE_EMPLOYEE; null for the cross-store
+   * roles (ADMINISTRATOR, MANAGER, PURCHASING_OFFICER). The database cannot express "required for
+   * one role only", so the rule is asserted in the seed and in handler assertions (NFR-01).
+   */
+  storeId: z.string().nullable(),
 });
 export type User = z.infer<typeof UserSchema>;
 

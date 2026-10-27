@@ -15,6 +15,7 @@ const storeEmployee: User = {
   email: 'staff_b01@erp.local',
   name: 'Staff B01',
   role: 'STORE_EMPLOYEE',
+  storeId: 'store-b01',
 };
 
 class RoutesUnderTest {

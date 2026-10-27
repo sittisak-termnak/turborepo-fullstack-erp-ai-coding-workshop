@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ORPCModule } from '@orpc/nest';
+import { AuditModule } from './audit/audit.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { publicErrorInterceptor } from './common/app-error.js';
 import { validateEnv } from './config/env.js';
 import { DatabaseModule } from './database/database.module.js';
 import { HealthModule } from './health/health.module.js';
 import { OpenApiModule } from './openapi/openapi.module.js';
+import { StoresModule } from './stores/stores.module.js';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { OpenApiModule } from './openapi/openapi.module.js';
     AuthModule,
     HealthModule,
     OpenApiModule,
+    StoresModule,
+    AuditModule,
   ],
 })
 export class AppModule {}

@@ -1,9 +1,13 @@
+import { auditContract } from './audit.js';
 import { authContract } from './auth.js';
 import { healthContract } from './health.js';
+import { storesContract } from './stores.js';
 
+export * from './audit.js';
 export * from './auth.js';
 export * from './errors.js';
 export * from './health.js';
+export * from './stores.js';
 
 /**
  * The single source of truth for the HTTP API.
@@ -13,8 +17,10 @@ export * from './health.js';
  * Add new feature contracts here, e.g. `customers: customersContract`.
  */
 export const contract = {
+  audit: auditContract,
   auth: authContract,
   health: healthContract,
+  stores: storesContract,
 };
 
 export type Contract = typeof contract;
