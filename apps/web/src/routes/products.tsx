@@ -272,7 +272,11 @@ export function ProductsPage() {
                         type="button"
                         variant="outline"
                         size="sm"
-                        aria-label={`คลังสินค้าตามสาขาของ ${product.sku}`}
+                        aria-label={
+                          expanded === product.id
+                            ? `ซ่อนคลังสินค้าตามสาขาของ ${product.sku}`
+                            : `คลังสินค้าตามสาขาของ ${product.sku}`
+                        }
                         onClick={() => setExpanded(expanded === product.id ? null : product.id)}
                       >
                         {expanded === product.id ? 'ซ่อนคลังสินค้า' : 'คลังสินค้าตามสาขา'}
