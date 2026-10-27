@@ -2,6 +2,7 @@ import { Controller } from '@nestjs/common';
 import { APP_ERRORS, contract, type ProductStore } from '@erp/contracts';
 import { Implement, implement } from '@orpc/nest';
 import { Roles } from '../auth/auth.decorators.js';
+import { isPrismaCode } from '../common/prisma-error.js';
 import { PrismaService } from '../database/prisma.service.js';
 
 type ProductStoreRow = {
@@ -22,15 +23,6 @@ function toProductStore(row: ProductStoreRow): ProductStore {
     balance: row.balance,
     reorderThreshold: row.reorderThreshold,
   };
-}
-
-function isPrismaCode(error: unknown, code: 'P2025'): boolean {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'code' in error &&
-    (error as { code?: unknown }).code === code
-  );
 }
 
 /**

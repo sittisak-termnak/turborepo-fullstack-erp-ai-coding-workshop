@@ -3,23 +3,11 @@ import { APP_ERRORS, contract, type Store, type User } from '@erp/contracts';
 import { Implement, implement, ORPCError } from '@orpc/nest';
 import { CurrentUser, Roles } from '../auth/auth.decorators.js';
 import { assertStoreAccess } from '../auth/store-scope.js';
+import { isPrismaCode } from '../common/prisma-error.js';
 import { PrismaService } from '../database/prisma.service.js';
 
 /** The store as the contract publishes it. Drops `createdAt`, which is an ordering key, not data. */
 const toStore = (row: Store): Store => ({ id: row.id, code: row.code, name: row.name });
-
-/**
- * Prisma signals a constraint breach with a code on the error, not a distinct class we can
- * `instanceof` across the ESM boundary. P2002 is a unique violation, P2025 a missing row.
- */
-function isPrismaCode(error: unknown, code: 'P2002' | 'P2025'): boolean {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'code' in error &&
-    (error as { code?: unknown }).code === code
-  );
-}
 
 @Controller()
 export class StoresController {

@@ -2,6 +2,7 @@ import { Controller } from '@nestjs/common';
 import { APP_ERRORS, contract, type Product } from '@erp/contracts';
 import { Implement, implement } from '@orpc/nest';
 import { Roles } from '../auth/auth.decorators.js';
+import { isPrismaCode } from '../common/prisma-error.js';
 import { PrismaService } from '../database/prisma.service.js';
 
 /** A row as Prisma returns it: `sellingPrice` is a Decimal, `createdAt` is an ordering key. */
@@ -27,19 +28,6 @@ function toProduct(row: ProductRow): Product {
       typeof row.sellingPrice === 'number' ? row.sellingPrice : Number(row.sellingPrice),
     active: row.active,
   };
-}
-
-/**
- * Prisma signals a constraint breach with a code on the error, not a distinct class we can
- * `instanceof` across the ESM boundary. P2002 is a unique violation, P2025 a missing row.
- */
-function isPrismaCode(error: unknown, code: 'P2002' | 'P2025'): boolean {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'code' in error &&
-    (error as { code?: unknown }).code === code
-  );
 }
 
 @Controller()
