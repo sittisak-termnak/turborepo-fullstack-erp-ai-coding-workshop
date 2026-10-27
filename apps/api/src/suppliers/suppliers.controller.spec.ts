@@ -12,10 +12,29 @@ import { createSessionToken, SESSION_COOKIE } from '../auth/session-token.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { SuppliersController } from './suppliers.controller.js';
 
-const sup01 = { id: 'supplier-sup01', code: 'SUP01', name: 'SupplyOne Co Ltd', phone: null, address: null };
-const sup02 = { id: 'supplier-sup02', code: 'SUP02', name: 'Supplier Two', phone: '02-111-2222', address: '1 ถนนสุขุมวิท' };
+type SupplierRow = {
+  id: string;
+  code: string;
+  name: string;
+  phone: string | null;
+  address: string | null;
+  createdAt: Date;
+};
 
-type SupplierRow = typeof sup01 & { createdAt: Date };
+const sup01: Omit<SupplierRow, 'createdAt'> = {
+  id: 'supplier-sup01',
+  code: 'SUP01',
+  name: 'SupplyOne Co Ltd',
+  phone: null,
+  address: null,
+};
+const sup02: Omit<SupplierRow, 'createdAt'> = {
+  id: 'supplier-sup02',
+  code: 'SUP02',
+  name: 'Supplier Two',
+  phone: '02-111-2222',
+  address: '1 ถนนสุขุมวิท',
+};
 
 const at = (iso: string) => new Date(iso);
 const rowsNewestLast: SupplierRow[] = [
@@ -102,7 +121,10 @@ function stubPrisma(seed: SupplierRow[] = rowsNewestLast) {
         async ({ where, data }: { where: { id: string }; data: Partial<SupplierRow> }) => {
           const row = rows.find((candidate) => candidate.id === where.id);
           if (!row) throw new RecordNotFound();
-          if (data.code && rows.some((other) => other.id !== where.id && other.code === data.code)) {
+          if (
+            data.code &&
+            rows.some((other) => other.id !== where.id && other.code === data.code)
+          ) {
             throw new UniqueViolation();
           }
           Object.assign(row, data);
@@ -233,7 +255,11 @@ describe('SuppliersController.update', () => {
     const controller = await createController(stubPrisma());
 
     await expect(
-      call(controller.update(), { id: 'supplier-sup01', code: 'SUP01', name: 'SupplyOne Co Ltd renamed' }),
+      call(controller.update(), {
+        id: 'supplier-sup01',
+        code: 'SUP01',
+        name: 'SupplyOne Co Ltd renamed',
+      }),
     ).resolves.toMatchObject({ code: 'SUP01', name: 'SupplyOne Co Ltd renamed' });
   });
 

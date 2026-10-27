@@ -125,7 +125,15 @@ describe('SupplierListInputSchema', () => {
 describe('SupplierListSchema', () => {
   it('carries one page of suppliers together with the total count', () => {
     const result = SupplierListSchema.safeParse({
-      items: [{ id: 'supplier-sup01', code: 'SUP01', name: 'SupplyOne Co Ltd', phone: null, address: null }],
+      items: [
+        {
+          id: 'supplier-sup01',
+          code: 'SUP01',
+          name: 'SupplyOne Co Ltd',
+          phone: null,
+          address: null,
+        },
+      ],
       total: 1,
     });
 

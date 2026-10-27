@@ -7,7 +7,13 @@ import { createQueryClient } from '@/lib/query-client';
 import { mockApi } from '@/test/mock-api';
 import { SuppliersPage } from './suppliers';
 
-const sup01 = { id: 'supplier-sup01', code: 'SUP01', name: 'SupplyOne Co Ltd', phone: null, address: null };
+const sup01 = {
+  id: 'supplier-sup01',
+  code: 'SUP01',
+  name: 'SupplyOne Co Ltd',
+  phone: null,
+  address: null,
+};
 const sup02 = {
   id: 'supplier-sup02',
   code: 'SUP02',

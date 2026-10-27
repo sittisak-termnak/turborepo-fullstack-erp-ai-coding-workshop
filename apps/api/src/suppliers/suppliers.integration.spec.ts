@@ -45,9 +45,9 @@ describe.skipIf(!databaseUrl)('supplier code uniqueness (integration)', () => {
       call(suppliers.create(), { code, name: 'ซัพพลายเออร์ทดสอบ' }),
     ).resolves.toMatchObject({ code });
 
-    await expect(
-      call(suppliers.create(), { code, name: 'ซัพพลายเออร์ซ้ำ' }),
-    ).rejects.toMatchObject({ code: 'SUPPLIER_CODE_TAKEN' });
+    await expect(call(suppliers.create(), { code, name: 'ซัพพลายเออร์ซ้ำ' })).rejects.toMatchObject(
+      { code: 'SUPPLIER_CODE_TAKEN' },
+    );
   });
 
   it('refuses an edit that moves a supplier onto a code the seeded SUP01 already holds', async () => {
@@ -90,6 +90,11 @@ describe.skipIf(!databaseUrl)('§8.1 supplier seed data (integration)', () => {
   it('seeds SUP01 / SupplyOne Co Ltd with null phone and address', async () => {
     const sup01 = await prisma.supplier.findUnique({ where: { code: 'SUP01' } });
 
-    expect(sup01).toMatchObject({ code: 'SUP01', name: 'SupplyOne Co Ltd', phone: null, address: null });
+    expect(sup01).toMatchObject({
+      code: 'SUP01',
+      name: 'SupplyOne Co Ltd',
+      phone: null,
+      address: null,
+    });
   });
 });
