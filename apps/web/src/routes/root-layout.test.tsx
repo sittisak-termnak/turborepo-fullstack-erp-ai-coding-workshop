@@ -9,18 +9,29 @@ import { HomePage } from './home';
 import { RootLayout } from './root-layout';
 
 const manager = { id: '5', email: 'manager01@erp.local', name: 'Manager One', role: 'MANAGER' };
+const admin = { id: '1', email: 'admin01@erp.local', name: 'Admin One', role: 'ADMINISTRATOR' };
 
 /** The shell always renders the home page, which calls /health. */
-function mockSignedInManager() {
+function mockSignedIn(user: typeof manager) {
   mockApi({
-    'GET /auth/me': { user: manager },
+    'GET /auth/me': { user },
     'GET /health': { api: 'ok', database: 'ok', timestamp: '2026-01-15T17:30:00.000Z' },
   });
 }
 
+const mockSignedInManager = () => mockSignedIn(manager);
+
 function renderShell() {
   const router = createMemoryRouter(
-    [{ element: <RootLayout />, children: [{ path: '/', element: <HomePage /> }] }],
+    [
+      {
+        element: <RootLayout />,
+        children: [
+          { path: '/', element: <HomePage /> },
+          { path: '/stores', element: <p>หน้าจัดการสาขา</p> },
+        ],
+      },
+    ],
     { initialEntries: ['/'] },
   );
   const { container } = render(
@@ -62,5 +73,31 @@ describe('RootLayout', () => {
     await screen.findByText('Manager One');
 
     expect(container.textContent).not.toMatch(/Welcome|workshop|The stack is up/i);
+  });
+});
+
+// Store maintenance is the Administrator's screen. The API is what refuses everyone else
+// (apps/api enforces it, and stores.controller.spec.ts proves the refusal); the shell only
+// decides whether to offer the way in, so a Manager is not sent to a page that will 403.
+describe('RootLayout store maintenance link', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('offers store maintenance to an Administrator', async () => {
+    mockSignedIn(admin);
+
+    renderShell();
+
+    expect(await screen.findByRole('link', { name: 'จัดการสาขา' })).toBeInTheDocument();
+  });
+
+  it('does not offer it to a Manager, who the API would refuse anyway', async () => {
+    mockSignedInManager();
+
+    renderShell();
+
+    await screen.findByText('Manager One');
+    expect(screen.queryByRole('link', { name: 'จัดการสาขา' })).not.toBeInTheDocument();
   });
 });
