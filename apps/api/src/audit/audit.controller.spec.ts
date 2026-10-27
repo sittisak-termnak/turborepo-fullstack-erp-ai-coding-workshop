@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { Reflector } from '@nestjs/core';
 import { call } from '@orpc/server';
 import { describe, expect, it, vi } from 'vitest';
+import { AUDIT_READER_ROLES } from '../auth/audit-permission.js';
 import { ROLES_KEY } from '../auth/auth.decorators.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { AuditController } from './audit.controller.js';
@@ -45,11 +46,11 @@ describe('AuditController.list', () => {
     );
   });
 
-  // The read is gated by role at the guard. This asserts the gate is declared so no role without
-  // audit permission can reach the handler.
-  it('is restricted to the Administrator role', () => {
+  // The read is gated by role at the guard. This asserts the gate is declared from the single
+  // audit-permission concept, so no role without audit permission can reach the handler.
+  it('is restricted to the roles with audit permission', () => {
     const roles = new Reflector().get<string[]>(ROLES_KEY, AuditController.prototype.list);
 
-    expect(roles).toEqual(['ADMINISTRATOR']);
+    expect(roles).toEqual([...AUDIT_READER_ROLES]);
   });
 });

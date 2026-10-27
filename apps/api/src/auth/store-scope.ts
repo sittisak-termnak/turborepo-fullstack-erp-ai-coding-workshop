@@ -30,6 +30,11 @@ export function mayAccessStore(user: User, targetStoreId: string): boolean {
  * Assert that `user` may act on `targetStoreId`, recording the outcome either way. On refusal,
  * writes a REFUSED audit record and throws FORBIDDEN; on success, writes an ALLOWED record.
  * `target` is the human-facing identifier recorded in the trail (e.g. a store code).
+ *
+ * The ticket's acceptance criterion names only refusals, but NFR-03 records *outcomes* and the
+ * AuditLog schema ships an ALLOWED value for exactly this: recording both keeps the trail a
+ * complete account of who reached what, not just a list of denials. This is a deliberate choice,
+ * not an accident of the helper.
  */
 export async function assertStoreAccess(
   prisma: PrismaService,

@@ -11,9 +11,19 @@ import { StoresController } from './stores.controller.js';
 // data (stores B01/B02, staff_b01 -> B01, staff_b02 -> B02, admin01 cross-store). Verifies the
 // rule end to end: enforcement at the API and a real row in the audit trail, not a stubbed call.
 //
-// Skipped automatically when no database is reachable (e.g. unit-only CI), so it never fails for
-// the wrong reason.
+// This needs a reachable database, so it is skipped when DATABASE_URL is unset (e.g. the unit-only
+// `test` CI job, which has no Postgres service). It is NOT the authoritative CI gate for the Demo
+// line: that is store-scope.e2e.ts in the `e2e` job, which runs against a real Postgres. This spec
+// is the faster local proof of the same guarantee. The skip is announced below so a skipped run is
+// never mistaken for a passing one.
 const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+  console.warn(
+    '[stores.integration.spec] DATABASE_URL unset: skipping the DB-backed store-scope proof. ' +
+      'The authoritative gate is store-scope.e2e.ts in the e2e job.',
+  );
+}
 
 async function loadUser(prisma: PrismaService, email: string): Promise<User> {
   const row = await prisma.user.findUniqueOrThrow({
