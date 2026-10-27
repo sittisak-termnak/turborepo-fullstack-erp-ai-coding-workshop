@@ -1,6 +1,8 @@
 import {
   createPrismaClient,
   DEMO_PASSWORD,
+  DEMO_PRODUCTS,
+  DEMO_REORDER_THRESHOLD,
   DEMO_STORES,
   DEMO_USERS,
   hashPassword,
@@ -42,8 +44,34 @@ async function main() {
     });
   }
 
+  // Products, then one product-store row per store (MD-01's eager creation), carrying the
+  // §8.1 opening balances at B01 and zero everywhere else.
+  for (const { b01Balance, ...product } of DEMO_PRODUCTS) {
+    const row = await prisma.product.upsert({
+      where: { sku: product.sku },
+      update: {
+        name: product.name,
+        category: product.category,
+        unit: product.unit,
+        sellingPrice: product.sellingPrice,
+      },
+      create: product,
+    });
+
+    for (const store of DEMO_STORES) {
+      const storeId = storeIdByCode.get(store.code);
+      if (!storeId) continue;
+      const balance = store.code === 'B01' ? b01Balance : 0;
+      await prisma.productStore.upsert({
+        where: { productId_storeId: { productId: row.id, storeId } },
+        update: { balance, reorderThreshold: DEMO_REORDER_THRESHOLD },
+        create: { productId: row.id, storeId, balance, reorderThreshold: DEMO_REORDER_THRESHOLD },
+      });
+    }
+  }
+
   console.log(
-    `Seeded ${DEMO_STORES.length} stores and ${DEMO_USERS.length} demo users (password: "${DEMO_PASSWORD}").`,
+    `Seeded ${DEMO_STORES.length} stores, ${DEMO_PRODUCTS.length} products and ${DEMO_USERS.length} demo users (password: "${DEMO_PASSWORD}").`,
   );
 }
 
