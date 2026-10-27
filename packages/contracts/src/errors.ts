@@ -59,6 +59,14 @@ export const APP_ERRORS = {
     action: 'CORRECT_INPUT',
     message: 'ไม่พบข้อมูลสินค้าประจำสาขานี้ กรุณาโหลดรายการใหม่แล้วลองอีกครั้ง',
   },
+  SUPPLIER_CODE_TAKEN: {
+    action: 'CORRECT_INPUT',
+    message: 'รหัสซัพพลายเออร์นี้ถูกใช้แล้ว กรุณาใช้รหัสอื่นแล้วบันทึกอีกครั้ง',
+  },
+  SUPPLIER_NOT_FOUND: {
+    action: 'CORRECT_INPUT',
+    message: 'ไม่พบซัพพลายเออร์ที่ระบุ อาจถูกลบไปแล้ว กรุณาโหลดรายการใหม่แล้วลองอีกครั้ง',
+  },
 } as const satisfies Record<string, AppError>;
 
 export type AppErrorCode = keyof typeof APP_ERRORS;

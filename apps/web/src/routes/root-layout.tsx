@@ -27,6 +27,12 @@ export function RootLayout() {
                 >
                   จัดการสินค้า
                 </Link>
+                <Link
+                  to="/suppliers"
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
+                  จัดการซัพพลายเออร์
+                </Link>
               </nav>
             )}
           </div>

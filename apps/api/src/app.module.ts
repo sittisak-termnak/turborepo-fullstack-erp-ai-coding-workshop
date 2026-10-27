@@ -10,6 +10,7 @@ import { HealthModule } from './health/health.module.js';
 import { OpenApiModule } from './openapi/openapi.module.js';
 import { ProductsModule } from './products/products.module.js';
 import { StoresModule } from './stores/stores.module.js';
+import { SuppliersModule } from './suppliers/suppliers.module.js';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { StoresModule } from './stores/stores.module.js';
     OpenApiModule,
     ProductsModule,
     StoresModule,
+    SuppliersModule,
     AuditModule,
   ],
 })
