@@ -36,6 +36,19 @@ model Store {
   products  ProductStore[]
 }
 
+/// A supplier (MD-03). `code` is the business key, unique across the organisation, the same
+/// rule as `Store.code`. `phone` and `address` are the only contact details #6 scopes in: both
+/// optional, both nullable, neither validated for shape, because no feature reads either yet.
+model Supplier {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  name      String
+  phone     String?
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 /// A catalogue item (MD-01). `sku` is the business key, unique across the organisation.
 /// `active` lets a product be deactivated without deleting it: MD-02 requires it to stay
 /// searchable in historical records while being refused on any new document.

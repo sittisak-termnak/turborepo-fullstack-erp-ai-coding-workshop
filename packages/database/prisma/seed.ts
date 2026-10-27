@@ -4,6 +4,7 @@ import {
   DEMO_PRODUCTS,
   DEMO_REORDER_THRESHOLD,
   DEMO_STORES,
+  DEMO_SUPPLIERS,
   DEMO_USERS,
   hashPassword,
 } from '../src/index.js';
@@ -31,6 +32,15 @@ async function main() {
       create: store,
     });
     storeIdByCode.set(store.code, row.id);
+  }
+
+  // #6's §8.1 supplier. phone/address stay null: §8.1 gives no contact values to seed with.
+  for (const supplier of DEMO_SUPPLIERS) {
+    await prisma.supplier.upsert({
+      where: { code: supplier.code },
+      update: { name: supplier.name, phone: supplier.phone, address: supplier.address },
+      create: supplier,
+    });
   }
 
   await prisma.user.deleteMany({ where: { email: { in: RETIRED_DEMO_EMAILS } } });
@@ -71,7 +81,7 @@ async function main() {
   }
 
   console.log(
-    `Seeded ${DEMO_STORES.length} stores, ${DEMO_PRODUCTS.length} products and ${DEMO_USERS.length} demo users (password: "${DEMO_PASSWORD}").`,
+    `Seeded ${DEMO_STORES.length} stores, ${DEMO_SUPPLIERS.length} suppliers, ${DEMO_PRODUCTS.length} products and ${DEMO_USERS.length} demo users (password: "${DEMO_PASSWORD}").`,
   );
 }
 
