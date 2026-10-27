@@ -1,9 +1,25 @@
 import { Controller } from '@nestjs/common';
-import { contract, type User } from '@erp/contracts';
+import { APP_ERRORS, contract, type Store, type User } from '@erp/contracts';
 import { Implement, implement, ORPCError } from '@orpc/nest';
-import { CurrentUser } from '../auth/auth.decorators.js';
+import { CurrentUser, Roles } from '../auth/auth.decorators.js';
 import { assertStoreAccess } from '../auth/store-scope.js';
 import { PrismaService } from '../database/prisma.service.js';
+
+/** The store as the contract publishes it. Drops `createdAt`, which is an ordering key, not data. */
+const toStore = (row: Store): Store => ({ id: row.id, code: row.code, name: row.name });
+
+/**
+ * Prisma signals a constraint breach with a code on the error, not a distinct class we can
+ * `instanceof` across the ESM boundary. P2002 is a unique violation, P2025 a missing row.
+ */
+function isPrismaCode(error: unknown, code: 'P2002' | 'P2025'): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error as { code?: unknown }).code === code
+  );
+}
 
 @Controller()
 export class StoresController {
@@ -26,6 +42,80 @@ export class StoresController {
       });
 
       return { id: store.id, code: store.code, name: store.name };
+    });
+  }
+
+  // Store maintenance is the Administrator's screen (MD-03), so the coarse gate is declarative and
+  // the guard refuses every other role before the handler runs. No row-level rule applies here:
+  // maintaining the list of stores is cross-store by definition, so there is no target to scope to.
+  @Roles('ADMINISTRATOR')
+  @Implement(contract.stores.list)
+  list() {
+    return implement(contract.stores.list).handler(async ({ input }) => {
+      const where = input.q
+        ? {
+            OR: [
+              { code: { contains: input.q, mode: 'insensitive' as const } },
+              { name: { contains: input.q, mode: 'insensitive' as const } },
+            ],
+          }
+        : undefined;
+
+      // The count is of everything the filter matched, not of this page: §6.2's reports need it
+      // and the screen needs it to know whether another page exists.
+      const [rows, total] = await Promise.all([
+        this.prisma.store.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          skip: (input.page - 1) * input.pageSize,
+          take: input.pageSize,
+        }),
+        this.prisma.store.count({ where }),
+      ]);
+
+      return { items: rows.map(toStore), total };
+    });
+  }
+
+  @Roles('ADMINISTRATOR')
+  @Implement(contract.stores.create)
+  create() {
+    return implement(contract.stores.create).handler(async ({ input, errors }) => {
+      try {
+        return toStore(
+          await this.prisma.store.create({ data: { code: input.code, name: input.name } }),
+        );
+      } catch (error) {
+        // Let the database decide uniqueness rather than checking first: a read-then-write would
+        // let two concurrent creates past the check and still breach the constraint.
+        if (isPrismaCode(error, 'P2002')) {
+          throw errors.STORE_CODE_TAKEN({ data: { action: APP_ERRORS.STORE_CODE_TAKEN.action } });
+        }
+        throw error;
+      }
+    });
+  }
+
+  @Roles('ADMINISTRATOR')
+  @Implement(contract.stores.update)
+  update() {
+    return implement(contract.stores.update).handler(async ({ input, errors }) => {
+      try {
+        return toStore(
+          await this.prisma.store.update({
+            where: { id: input.id },
+            data: { code: input.code, name: input.name },
+          }),
+        );
+      } catch (error) {
+        if (isPrismaCode(error, 'P2002')) {
+          throw errors.STORE_CODE_TAKEN({ data: { action: APP_ERRORS.STORE_CODE_TAKEN.action } });
+        }
+        if (isPrismaCode(error, 'P2025')) {
+          throw errors.STORE_NOT_FOUND({ data: { action: APP_ERRORS.STORE_NOT_FOUND.action } });
+        }
+        throw error;
+      }
     });
   }
 }
