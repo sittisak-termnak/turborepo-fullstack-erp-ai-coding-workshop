@@ -17,9 +17,15 @@ export function RootLayout() {
               This only keeps a Manager from being sent to a screen that would answer 403.
             */}
             {user?.role === 'ADMINISTRATOR' && (
-              <nav aria-label="เมนูหลัก">
+              <nav aria-label="เมนูหลัก" className="flex items-center gap-6">
                 <Link to="/stores" className="text-sm text-muted-foreground hover:text-foreground">
                   จัดการสาขา
+                </Link>
+                <Link
+                  to="/products"
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
+                  จัดการสินค้า
                 </Link>
               </nav>
             )}
