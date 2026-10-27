@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { DEMO_USERS } from './demo-users.js';
+import { DEMO_STORES, DEMO_USERS } from './demo-users.js';
 
 /**
  * Expected values come from TOR section 8.1, which names the test users, and section 2,
- * which defines their roles. Store assignment is not asserted here: the store concept and
- * the user-to-store column arrive in a later ticket.
+ * which defines their roles.
  */
 describe('DEMO_USERS', () => {
   it.each([
@@ -31,5 +30,28 @@ describe('DEMO_USERS', () => {
     const emails = DEMO_USERS.map((user) => user.email);
 
     expect(new Set(emails).size).toBe(emails.length);
+  });
+});
+
+describe('DEMO_STORES and store assignment', () => {
+  it('seeds the two TOR branches B01 and B02', () => {
+    expect(DEMO_STORES.map((store) => store.code).sort()).toEqual(['B01', 'B02']);
+  });
+
+  it.each([
+    ['staff_b01@erp.local', 'B01'],
+    ['staff_b02@erp.local', 'B02'],
+  ])('assigns %s to store %s', (email, code) => {
+    const user = DEMO_USERS.find((u) => u.email === email);
+    expect(user && 'storeCode' in user ? user.storeCode : undefined).toBe(code);
+  });
+
+  it.each([
+    'admin01@erp.local',
+    'buyer01@erp.local',
+    'manager01@erp.local',
+  ])('leaves the cross-store account %s unassigned', (email) => {
+    const user = DEMO_USERS.find((u) => u.email === email);
+    expect(user && 'storeCode' in user).toBe(false);
   });
 });
