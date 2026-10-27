@@ -34,5 +34,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    // Deliberately not Asia/Bangkok: NFR-06 wants Bangkok output on any host, so the tests run in
+    // a different zone and would catch a formatter that leaned on the machine's clock.
+    env: { TZ: 'UTC' },
   },
 });

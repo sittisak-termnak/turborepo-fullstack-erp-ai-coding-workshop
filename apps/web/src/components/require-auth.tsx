@@ -7,7 +7,7 @@ export function RequireAuth() {
   const location = useLocation();
 
   if (session.isPending) {
-    return <div className="p-6 text-muted-foreground">Loading…</div>;
+    return <div className="p-6 text-muted-foreground">กำลังโหลด…</div>;
   }
 
   if (!session.data?.user) {

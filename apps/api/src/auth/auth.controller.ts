@@ -1,8 +1,8 @@
 import { Controller, Res } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { contract, type User } from '@erp/contracts';
+import { APP_ERRORS, contract, type User } from '@erp/contracts';
 import { verifyPassword } from '@erp/database';
-import { Implement, implement, ORPCError } from '@orpc/nest';
+import { Implement, implement } from '@orpc/nest';
 import type { CookieOptions, Response } from 'express';
 import type { Env } from '../config/env.js';
 import { PrismaService } from '../database/prisma.service.js';
@@ -29,13 +29,16 @@ export class AuthController {
 
   @Implement(contract.auth.login)
   login(@Res({ passthrough: true }) res: Response) {
-    return implement(contract.auth.login).handler(async ({ input }) => {
+    return implement(contract.auth.login).handler(async ({ input, errors }) => {
       const found = await this.prisma.user.findUnique({
         where: { email: input.email.toLowerCase() },
         select: { ...USER_SELECT, passwordHash: true },
       });
       if (!found || !(await verifyPassword(input.password, found.passwordHash))) {
-        throw new ORPCError('UNAUTHORIZED', { message: 'Invalid email or password' });
+        // The Thai message comes from the contract's declaration of this error.
+        throw errors.INVALID_CREDENTIALS({
+          data: { action: APP_ERRORS.INVALID_CREDENTIALS.action },
+        });
       }
 
       const { passwordHash: _, ...user } = found;

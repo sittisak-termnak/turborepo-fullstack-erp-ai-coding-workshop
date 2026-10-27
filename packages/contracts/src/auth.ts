@@ -1,5 +1,6 @@
 import { oc } from '@orpc/contract';
 import * as z from 'zod';
+import { routeError } from './errors.js';
 
 /**
  * The four roles of TOR section 2. They are deliberately flat, not nested: section 2 states an
@@ -13,6 +14,18 @@ export const RoleSchema = z.enum([
   'MANAGER',
 ]);
 export type Role = z.infer<typeof RoleSchema>;
+
+/**
+ * How each role is named on screen, in the Thai of TOR section 2. Typed as a total map, so adding
+ * a role to `RoleSchema` without naming it breaks the build instead of leaking an enum value into
+ * the interface.
+ */
+export const ROLE_LABELS: Record<Role, string> = {
+  ADMINISTRATOR: 'ผู้ดูแลระบบ',
+  PURCHASING_OFFICER: 'เจ้าหน้าที่จัดซื้อ',
+  STORE_EMPLOYEE: 'พนักงานสาขา',
+  MANAGER: 'ผู้จัดการ',
+};
 
 /** The signed-in user as the API exposes it (never includes the password hash). */
 export const UserSchema = z.object({
@@ -48,6 +61,9 @@ export const authContract = {
       summary: 'Sign in with email and password',
       tags: ['Auth'],
     })
+    // Declared on the route so the Thai message and its action are part of the published contract
+    // and the handler cannot invent an error shape of its own (NFR-04).
+    .errors({ INVALID_CREDENTIALS: routeError('INVALID_CREDENTIALS', 401) })
     .input(LoginInputSchema)
     .output(UserSchema),
   logout: oc.route({ method: 'POST', path: '/auth/logout', summary: 'Sign out', tags: ['Auth'] }),

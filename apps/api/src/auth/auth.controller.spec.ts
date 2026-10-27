@@ -1,8 +1,8 @@
 import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
-import type { User } from '@erp/contracts';
+import { APP_ERRORS, type User } from '@erp/contracts';
 import { hashPassword } from '@erp/database';
-import { call } from '@orpc/server';
+import { call, type ORPCError } from '@orpc/server';
 import type { Response } from 'express';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { PrismaService } from '../database/prisma.service.js';
@@ -76,8 +76,29 @@ describe('AuthController', () => {
 
     await expect(
       call(controller.login(res), { email: 'admin01@erp.local', password: 'wrong' }),
-    ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+    ).rejects.toMatchObject({ code: 'INVALID_CREDENTIALS', status: 401 });
     expect(res.cookie).not.toHaveBeenCalled();
+  });
+
+  // NFR-04: Thai, actionable, and free of stack traces or database detail.
+  it('tells a rejected sign-in to correct its input, in Thai, leaking nothing internal', async () => {
+    const controller = await createController(
+      vi.fn().mockResolvedValue({ ...admin, passwordHash }),
+    );
+
+    const error = await call(controller.login(fakeResponse()), {
+      email: 'admin01@erp.local',
+      password: 'wrong',
+    }).then(
+      () => undefined,
+      (thrown: unknown) => thrown as ORPCError<string, unknown>,
+    );
+
+    expect(error?.message).toBe(APP_ERRORS.INVALID_CREDENTIALS.message);
+    expect(error?.data).toMatchObject({ action: 'CORRECT_INPUT' });
+    // The message is the only thing the client sees, so it must carry no implementation detail.
+    expect(error?.message).not.toMatch(/[A-Za-z]/);
+    expect(JSON.stringify(error?.data)).not.toMatch(/prisma|select|postgres|passwordHash|at /i);
   });
 
   it('rejects an unknown email', async () => {
@@ -85,7 +106,7 @@ describe('AuthController', () => {
 
     await expect(
       call(controller.login(fakeResponse()), { email: 'nobody@erp.local', password: 'password' }),
-    ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+    ).rejects.toMatchObject({ code: 'INVALID_CREDENTIALS', status: 401 });
   });
 
   it('clears the cookie on logout', async () => {

@@ -6,7 +6,7 @@ export function RootLayout() {
     <div className="min-h-svh bg-background text-foreground">
       <header className="border-b">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-6 font-semibold">
-          ERP Workshop
+          ระบบจัดการธุรกิจค้าปลีก
           <UserMenu />
         </div>
       </header>

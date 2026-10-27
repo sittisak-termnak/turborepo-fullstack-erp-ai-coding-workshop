@@ -47,6 +47,15 @@ describe('RequireAuth', () => {
     expect(await screen.findByText('Orders page')).toBeInTheDocument();
   });
 
+  // This is the first thing on screen on a cold load of any page, so it has to be Thai too.
+  it('says it is loading in Thai while the session is still unknown', () => {
+    mockApi({ 'GET /auth/me': { user: storeEmployee } });
+
+    renderProtected(<p>Orders page</p>);
+
+    expect(screen.getByText('กำลังโหลด…')).toBeInTheDocument();
+  });
+
   it('redirects to /login and remembers where the user was going', async () => {
     mockApi({ 'GET /auth/me': { user: null } });
 
