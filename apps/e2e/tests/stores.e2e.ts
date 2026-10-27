@@ -49,3 +49,24 @@ test.describe('store maintenance', () => {
     await expect(page.getByRole('table')).toHaveCount(0);
   });
 });
+
+// AC-06 again, at the one seam CI actually gates. stores.integration.spec.ts proves the same
+// rule faster locally, but it is wrapped in skipIf(!DATABASE_URL) and the `check` job declares no
+// Postgres service, so it skips on every pull request. The `e2e` job has a real database, so this
+// is where uniqueness is held. Driven over HTTP rather than the UI: the rule belongs to the
+// database constraint, and the screen is not what is under test.
+test.describe('store code uniqueness', () => {
+  test.use({ storageState: storageState('admin') });
+
+  test('refuses a second store that claims a code already in use', async ({ request }) => {
+    const code = `E2EDUP${Date.now()}`;
+
+    const first = await request.post('/api/stores', { data: { code, name: 'สาขาแรก' } });
+    expect(first.ok(), `creating ${code} returned ${first.status()}`).toBeTruthy();
+
+    const second = await request.post('/api/stores', { data: { code, name: 'สาขาซ้ำ' } });
+    expect(second.status()).toBe(409);
+    // NFR-04: the refusal reaches the client as the catalogue's Thai text, not a Prisma error.
+    expect(await second.text()).toContain('รหัสสาขานี้ถูกใช้แล้ว');
+  });
+});

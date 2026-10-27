@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { STORE_PAGE_SIZE_DEFAULT, type Store } from '@erp/contracts';
 import { useSearchParams } from 'react-router';
 import { ListState } from '@/components/list-state';
+import { Pagination } from '@/components/pagination';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -55,7 +56,6 @@ export function StoresPage() {
   const saving = editing ? update : create;
 
   const total = stores.data?.total;
-  const lastPage = total === undefined ? 1 : Math.max(1, Math.ceil(total / pageSize));
 
   const goTo = (next: Record<string, string | undefined>) => {
     const params = new URLSearchParams(searchParams);
@@ -188,30 +188,13 @@ export function StoresPage() {
         </table>
       </ListState>
 
-      {total !== undefined && lastPage > 1 && (
-        <nav className="flex items-center gap-4" aria-label="การแบ่งหน้า">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={page <= 1}
-            onClick={() => goTo({ page: String(page - 1) })}
-          >
-            หน้าก่อนหน้า
-          </Button>
-          <span className="text-sm text-muted-foreground">
-            หน้า {page} จาก {lastPage}
-          </span>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={page >= lastPage}
-            onClick={() => goTo({ page: String(page + 1) })}
-          >
-            หน้าถัดไป
-          </Button>
-        </nav>
+      {total !== undefined && (
+        <Pagination
+          page={page}
+          pageSize={pageSize}
+          total={total}
+          onPageChange={(next) => goTo({ page: String(next) })}
+        />
       )}
     </div>
   );
