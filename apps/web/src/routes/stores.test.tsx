@@ -74,9 +74,9 @@ describe('StoresPage', () => {
 
     renderStores();
 
-    expect(
-      await screen.findByRole('alert', undefined, { timeout: 4000 }),
-    ).toHaveTextContent(APP_ERRORS.UNEXPECTED.message);
+    expect(await screen.findByRole('alert', undefined, { timeout: 4000 })).toHaveTextContent(
+      APP_ERRORS.UNEXPECTED.message,
+    );
   });
 
   it('reads the page and the filter from the query string, so a list view is shareable', async () => {
