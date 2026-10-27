@@ -113,8 +113,12 @@ describe.skipIf(!databaseUrl)('store code uniqueness (integration)', () => {
   let prisma: PrismaService;
   let stores: StoresController;
 
-  const removeTestStores = () =>
-    prisma.store.deleteMany({ where: { code: { startsWith: prefix } } });
+  // #7: creating a store now eagerly creates a product-store row for every existing product, so
+  // a test store's rows must go before the store itself can.
+  const removeTestStores = async () => {
+    await prisma.productStore.deleteMany({ where: { store: { code: { startsWith: prefix } } } });
+    await prisma.store.deleteMany({ where: { code: { startsWith: prefix } } });
+  };
 
   beforeAll(async () => {
     prisma = new PrismaService({

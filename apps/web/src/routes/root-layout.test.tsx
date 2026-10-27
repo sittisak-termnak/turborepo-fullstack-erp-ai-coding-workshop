@@ -101,3 +101,27 @@ describe('RootLayout store maintenance link', () => {
     expect(screen.queryByRole('link', { name: 'จัดการสาขา' })).not.toBeInTheDocument();
   });
 });
+
+// Product maintenance (#7) is the Administrator's screen too, same reasoning as stores above.
+describe('RootLayout product maintenance link', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('offers product maintenance to an Administrator', async () => {
+    mockSignedIn(admin);
+
+    renderShell();
+
+    expect(await screen.findByRole('link', { name: 'จัดการสินค้า' })).toBeInTheDocument();
+  });
+
+  it('does not offer it to a Manager, who the API would refuse anyway', async () => {
+    mockSignedInManager();
+
+    renderShell();
+
+    await screen.findByText('Manager One');
+    expect(screen.queryByRole('link', { name: 'จัดการสินค้า' })).not.toBeInTheDocument();
+  });
+});

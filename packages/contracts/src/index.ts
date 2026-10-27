@@ -1,12 +1,16 @@
 import { auditContract } from './audit.js';
 import { authContract } from './auth.js';
 import { healthContract } from './health.js';
+import { productStoresContract } from './product-stores.js';
+import { productsContract } from './products.js';
 import { storesContract } from './stores.js';
 
 export * from './audit.js';
 export * from './auth.js';
 export * from './errors.js';
 export * from './health.js';
+export * from './product-stores.js';
+export * from './products.js';
 export * from './stores.js';
 
 /**
@@ -20,6 +24,8 @@ export const contract = {
   audit: auditContract,
   auth: authContract,
   health: healthContract,
+  products: productsContract,
+  productStores: productStoresContract,
   stores: storesContract,
 };
 

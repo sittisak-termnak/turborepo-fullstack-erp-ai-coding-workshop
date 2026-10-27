@@ -3,23 +3,11 @@ import { APP_ERRORS, contract, type Store, type User } from '@erp/contracts';
 import { Implement, implement, ORPCError } from '@orpc/nest';
 import { CurrentUser, Roles } from '../auth/auth.decorators.js';
 import { assertStoreAccess } from '../auth/store-scope.js';
+import { isPrismaCode } from '../common/prisma-error.js';
 import { PrismaService } from '../database/prisma.service.js';
 
 /** The store as the contract publishes it. Drops `createdAt`, which is an ordering key, not data. */
 const toStore = (row: Store): Store => ({ id: row.id, code: row.code, name: row.name });
-
-/**
- * Prisma signals a constraint breach with a code on the error, not a distinct class we can
- * `instanceof` across the ESM boundary. P2002 is a unique violation, P2025 a missing row.
- */
-function isPrismaCode(error: unknown, code: 'P2002' | 'P2025'): boolean {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'code' in error &&
-    (error as { code?: unknown }).code === code
-  );
-}
 
 @Controller()
 export class StoresController {
@@ -82,9 +70,21 @@ export class StoresController {
   create() {
     return implement(contract.stores.create).handler(async ({ input, errors }) => {
       try {
-        return toStore(
-          await this.prisma.store.create({ data: { code: input.code, name: input.name } }),
-        );
+        return await this.prisma.$transaction(async (tx) => {
+          const store = await tx.store.create({ data: { code: input.code, name: input.name } });
+
+          // #7's eager-creation rule, the mirror image of ProductsController.create: a new
+          // product-store row for every existing product, so a brand-new store is never missing
+          // a row the low-stock report needs.
+          const products = await tx.product.findMany({ select: { id: true } });
+          if (products.length > 0) {
+            await tx.productStore.createMany({
+              data: products.map((product) => ({ productId: product.id, storeId: store.id })),
+            });
+          }
+
+          return toStore(store);
+        });
       } catch (error) {
         // Let the database decide uniqueness rather than checking first: a read-then-write would
         // let two concurrent creates past the check and still breach the constraint.

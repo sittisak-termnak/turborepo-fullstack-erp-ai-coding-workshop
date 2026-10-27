@@ -47,6 +47,18 @@ export const APP_ERRORS = {
     action: 'CORRECT_INPUT',
     message: 'ไม่พบสาขาที่ระบุ อาจถูกลบไปแล้ว กรุณาโหลดรายการใหม่แล้วลองอีกครั้ง',
   },
+  PRODUCT_SKU_TAKEN: {
+    action: 'CORRECT_INPUT',
+    message: 'รหัสสินค้านี้ถูกใช้แล้ว กรุณาใช้รหัสอื่นแล้วบันทึกอีกครั้ง',
+  },
+  PRODUCT_NOT_FOUND: {
+    action: 'CORRECT_INPUT',
+    message: 'ไม่พบสินค้าที่ระบุ อาจถูกลบไปแล้ว กรุณาโหลดรายการใหม่แล้วลองอีกครั้ง',
+  },
+  PRODUCT_STORE_NOT_FOUND: {
+    action: 'CORRECT_INPUT',
+    message: 'ไม่พบข้อมูลสินค้าประจำสาขานี้ กรุณาโหลดรายการใหม่แล้วลองอีกครั้ง',
+  },
 } as const satisfies Record<string, AppError>;
 
 export type AppErrorCode = keyof typeof APP_ERRORS;
