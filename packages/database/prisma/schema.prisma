@@ -33,6 +33,45 @@ model Store {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   users     User[]
+  products  ProductStore[]
+}
+
+/// A catalogue item (MD-01). `sku` is the business key, unique across the organisation.
+/// `active` lets a product be deactivated without deleting it: MD-02 requires it to stay
+/// searchable in historical records while being refused on any new document.
+model Product {
+  id           String         @id @default(cuid())
+  sku          String         @unique
+  name         String
+  category     String
+  unit         String
+  /// Two decimal places, per TOR section 4.3. Decimal, not Float, so money never drifts.
+  sellingPrice Decimal        @db.Decimal(10, 2)
+  active       Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  stores       ProductStore[]
+}
+
+/// The reorder threshold and stock balance are per store (MD-01), so neither is a column on
+/// Product; both live here instead. Created eagerly -- for every store when a product is
+/// created, and for every product when a store is created -- so a product that has never moved
+/// still has a row: lazy creation on first movement would leave a zero-stock product with no
+/// row, which would silently break the low-stock report (INV-01/RPT-02) where it must still
+/// appear.
+model ProductStore {
+  id               String   @id @default(cuid())
+  productId        String
+  product          Product  @relation(fields: [productId], references: [id])
+  storeId          String
+  store            Store    @relation(fields: [storeId], references: [id])
+  balance          Int      @default(0)
+  reorderThreshold Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([productId, storeId])
+  @@index([storeId])
 }
 
 model User {
