@@ -23,7 +23,8 @@ function toProduct(row: ProductRow): Product {
     name: row.name,
     category: row.category,
     unit: row.unit,
-    sellingPrice: typeof row.sellingPrice === 'number' ? row.sellingPrice : Number(row.sellingPrice),
+    sellingPrice:
+      typeof row.sellingPrice === 'number' ? row.sellingPrice : Number(row.sellingPrice),
     active: row.active,
   };
 }

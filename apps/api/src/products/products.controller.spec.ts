@@ -4,7 +4,7 @@ import { Reflector } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import type { User } from '@erp/contracts';
 import { call } from '@orpc/server';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Env } from '../config/env.js';
 import type { AuthenticatedRequest } from '../auth/auth.decorators.js';
 import { AuthGuard } from '../auth/auth.guard.js';
@@ -137,7 +137,14 @@ function stubPrisma(seed: ProductRow[] = rowsNewestLast, existingStoreIds: strin
         async ({
           data,
         }: {
-          data: { sku: string; name: string; category: string; unit: string; sellingPrice: number; active: boolean };
+          data: {
+            sku: string;
+            name: string;
+            category: string;
+            unit: string;
+            sellingPrice: number;
+            active: boolean;
+          };
         }) => {
           if (rows.some((row) => row.sku === data.sku)) throw new UniqueViolation();
           const created = {
@@ -150,13 +157,7 @@ function stubPrisma(seed: ProductRow[] = rowsNewestLast, existingStoreIds: strin
         },
       ),
       update: vi.fn(
-        async ({
-          where,
-          data,
-        }: {
-          where: { id: string };
-          data: Partial<ProductRow>;
-        }) => {
+        async ({ where, data }: { where: { id: string }; data: Partial<ProductRow> }) => {
           const row = rows.find((candidate) => candidate.id === where.id);
           if (!row) throw new RecordNotFound();
           if (data.sku && rows.some((other) => other.id !== where.id && other.sku === data.sku)) {
@@ -176,7 +177,9 @@ function stubPrisma(seed: ProductRow[] = rowsNewestLast, existingStoreIds: strin
   };
   // A stand-in transaction: hands the same stub back, which is enough to prove the handler asked
   // for product creation and the eager product-store rows together.
-  return Object.assign(prisma, { $transaction: vi.fn((fn: (tx: typeof prisma) => unknown) => fn(prisma)) });
+  return Object.assign(prisma, {
+    $transaction: vi.fn((fn: (tx: typeof prisma) => unknown) => fn(prisma)),
+  });
 }
 
 async function createController(prisma: ReturnType<typeof stubPrisma>) {
@@ -375,9 +378,12 @@ describe('product maintenance is administrator-only', () => {
     return guard.canActivate(context);
   }
 
-  it.each(['list', 'create', 'update'] as const)('lets an Administrator reach %s', async (route) => {
-    await expect(runGuard(route, admin)).resolves.toBe(true);
-  });
+  it.each(['list', 'create', 'update'] as const)(
+    'lets an Administrator reach %s',
+    async (route) => {
+      await expect(runGuard(route, admin)).resolves.toBe(true);
+    },
+  );
 
   it.each(['list', 'create', 'update'] as const)('refuses a Manager %s', async (route) => {
     await expect(runGuard(route, manager)).rejects.toBeInstanceOf(ForbiddenException);

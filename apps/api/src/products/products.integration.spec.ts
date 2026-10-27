@@ -150,7 +150,9 @@ describe.skipIf(!databaseUrl)('eager product-store creation (integration)', () =
       sellingPrice: 1,
       active: true,
     });
-    const [b01, b02] = await call(productStores.listForProduct(), { productId: product.id });
+    const rows = await call(productStores.listForProduct(), { productId: product.id });
+    const [b01, b02] = rows;
+    if (!b01 || !b02) throw new Error('expected a row for every seeded store');
 
     await call(productStores.updateThreshold(), {
       productId: product.id,
@@ -211,12 +213,20 @@ describe.skipIf(!databaseUrl)('seed data (integration)', () => {
     expect(row.balance).toBe(0);
   });
 
+  // Checked at B01 and B02 by name, not by asserting the row count: a shared dev database also
+  // carries whatever stores other tests created (#7's own eager creation reaches every store, on
+  // purpose), and this proves the seeded threshold, not how many stores happen to exist.
   it.each(['SKU001', 'SKU002', 'SKU003'])(
-    'seeds %s with a reorder threshold of 3 at both stores',
+    'seeds %s with a reorder threshold of 3 at both B01 and B02',
     async (sku) => {
       const product = await prisma.product.findUniqueOrThrow({ where: { sku } });
-      const rows = await prisma.productStore.findMany({ where: { productId: product.id } });
-      expect(rows.map((row) => row.reorderThreshold)).toEqual([3, 3]);
+      for (const code of ['B01', 'B02']) {
+        const store = await prisma.store.findUniqueOrThrow({ where: { code } });
+        const row = await prisma.productStore.findUniqueOrThrow({
+          where: { productId_storeId: { productId: product.id, storeId: store.id } },
+        });
+        expect(row.reorderThreshold).toBe(3);
+      }
     },
   );
 });

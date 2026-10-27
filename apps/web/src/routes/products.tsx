@@ -202,7 +202,9 @@ export function ProductsPage() {
         </div>
       </form>
 
-      {total !== undefined && <p className="text-sm text-muted-foreground">ทั้งหมด {total} สินค้า</p>}
+      {total !== undefined && (
+        <p className="text-sm text-muted-foreground">ทั้งหมด {total} สินค้า</p>
+      )}
 
       <ListState
         isPending={products.isPending}
@@ -381,7 +383,13 @@ function ProductStoreRow({
   onSave,
   saving,
 }: {
-  row: { storeId: string; storeCode: string; storeName: string; balance: number; reorderThreshold: number };
+  row: {
+    storeId: string;
+    storeCode: string;
+    storeName: string;
+    balance: number;
+    reorderThreshold: number;
+  };
   onSave: (reorderThreshold: number) => void;
   saving: boolean;
 }) {

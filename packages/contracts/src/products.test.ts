@@ -25,14 +25,14 @@ describe('ProductSchema', () => {
   });
 
   it('rejects a product missing its SKU', () => {
-    const { sku, ...rest } = validProduct;
+    const { sku: _sku, ...rest } = validProduct;
     expect(ProductSchema.safeParse(rest).success).toBe(false);
   });
 });
 
 describe('ProductCreateInputSchema', () => {
   it('accepts a product with every MD-01 field and defaults active to true', () => {
-    const { id, active, ...input } = validProduct;
+    const { id: _id, active: _active, ...input } = validProduct;
     const result = ProductCreateInputSchema.safeParse(input);
 
     expect(result.success).toBe(true);
@@ -40,25 +40,23 @@ describe('ProductCreateInputSchema', () => {
   });
 
   it('rejects a blank SKU', () => {
-    const { id, ...input } = validProduct;
+    const { id: _id, ...input } = validProduct;
     expect(ProductCreateInputSchema.safeParse({ ...input, sku: ' ' }).success).toBe(false);
   });
 
   // MD-02.
   it('rejects a negative selling price', () => {
-    const { id, ...input } = validProduct;
-    expect(ProductCreateInputSchema.safeParse({ ...input, sellingPrice: -1 }).success).toBe(
-      false,
-    );
+    const { id: _id, ...input } = validProduct;
+    expect(ProductCreateInputSchema.safeParse({ ...input, sellingPrice: -1 }).success).toBe(false);
   });
 
   it('accepts a selling price of zero', () => {
-    const { id, ...input } = validProduct;
+    const { id: _id, ...input } = validProduct;
     expect(ProductCreateInputSchema.safeParse({ ...input, sellingPrice: 0 }).success).toBe(true);
   });
 
   it('coerces a selling price delivered as a query-string number', () => {
-    const { id, ...input } = validProduct;
+    const { id: _id, ...input } = validProduct;
     const result = ProductCreateInputSchema.safeParse({ ...input, sellingPrice: '60' });
     expect(result.data?.sellingPrice).toBe(60);
   });
@@ -71,7 +69,7 @@ describe('ProductUpdateInputSchema', () => {
   });
 
   it('rejects an update without an id', () => {
-    const { id, ...input } = validProduct;
+    const { id: _id, ...input } = validProduct;
     expect(ProductUpdateInputSchema.safeParse(input).success).toBe(false);
   });
 
