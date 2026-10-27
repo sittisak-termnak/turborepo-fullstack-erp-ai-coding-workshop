@@ -82,9 +82,21 @@ export class StoresController {
   create() {
     return implement(contract.stores.create).handler(async ({ input, errors }) => {
       try {
-        return toStore(
-          await this.prisma.store.create({ data: { code: input.code, name: input.name } }),
-        );
+        return await this.prisma.$transaction(async (tx) => {
+          const store = await tx.store.create({ data: { code: input.code, name: input.name } });
+
+          // #7's eager-creation rule, the mirror image of ProductsController.create: a new
+          // product-store row for every existing product, so a brand-new store is never missing
+          // a row the low-stock report needs.
+          const products = await tx.product.findMany({ select: { id: true } });
+          if (products.length > 0) {
+            await tx.productStore.createMany({
+              data: products.map((product) => ({ productId: product.id, storeId: store.id })),
+            });
+          }
+
+          return toStore(store);
+        });
       } catch (error) {
         // Let the database decide uniqueness rather than checking first: a read-then-write would
         // let two concurrent creates past the check and still breach the constraint.

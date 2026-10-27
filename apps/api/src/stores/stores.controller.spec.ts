@@ -57,7 +57,7 @@ class UniqueViolation extends Error {
  * `orderBy`, `skip` and `take`, so a test can assert the rows and their order that come back
  * instead of the arguments the handler passed to Prisma. Refactor the query and the tests hold.
  */
-function stubPrisma(seed: StoreRow[] = rowsNewestLast) {
+function stubPrisma(seed: StoreRow[] = rowsNewestLast, existingProductIds: string[] = []) {
   const rows = [...seed];
 
   const matches = (row: StoreRow, where?: StoreWhere) => {
@@ -69,7 +69,7 @@ function stubPrisma(seed: StoreRow[] = rowsNewestLast) {
     });
   };
 
-  return {
+  const prisma = {
     store: {
       findUnique: vi.fn(async ({ where }: { where: { code?: string; id?: string } }) =>
         rows.find((row) =>
@@ -122,8 +122,19 @@ function stubPrisma(seed: StoreRow[] = rowsNewestLast) {
         },
       ),
     },
+    product: {
+      findMany: vi.fn(async () => existingProductIds.map((id) => ({ id }))),
+    },
+    productStore: {
+      createMany: vi.fn(async ({ data }: { data: unknown[] }) => ({ count: data.length })),
+    },
     auditLog: { create: vi.fn(async ({ data }: { data: unknown }) => data) },
   };
+  // A stand-in transaction: hands the same stub back, which is enough to prove the handler asked
+  // for store creation and the eager product-store rows together.
+  return Object.assign(prisma, {
+    $transaction: vi.fn((fn: (tx: typeof prisma) => unknown) => fn(prisma)),
+  });
 }
 
 /** The error Prisma raises when `update` addresses a row that is not there. */
@@ -296,6 +307,31 @@ describe('StoresController.create', () => {
     await expect(
       call(controller.create(), { code: 'B01', name: 'Branch 01 again' }),
     ).rejects.toMatchObject({ code: 'STORE_CODE_TAKEN' });
+  });
+
+  // #7's eager-creation rule, the mirror image of ProductsController.create's own test: a new
+  // store gets a product-store row for every existing product.
+  it('creates a product-store record for every existing product', async () => {
+    const prisma = stubPrisma(rowsNewestLast, ['product-water', 'product-tissue']);
+    const controller = await createController(prisma);
+
+    const store = await call(controller.create(), { code: 'B04', name: 'Branch 04' });
+
+    expect(prisma.productStore.createMany).toHaveBeenCalledWith({
+      data: [
+        { productId: 'product-water', storeId: store.id },
+        { productId: 'product-tissue', storeId: store.id },
+      ],
+    });
+  });
+
+  it('creates no product-store rows when there are no products yet', async () => {
+    const prisma = stubPrisma(rowsNewestLast, []);
+    const controller = await createController(prisma);
+
+    await call(controller.create(), { code: 'B04', name: 'Branch 04' });
+
+    expect(prisma.productStore.createMany).not.toHaveBeenCalled();
   });
 });
 
