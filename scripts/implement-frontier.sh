@@ -141,6 +141,12 @@ for n in $frontier; do
   # so the database must not carry the previous ticket's migration.
   pnpm --filter @erp/database exec prisma migrate reset --force >"$log" 2>&1 ||
     fail "database reset failed for #$n; see $log"
+  # Prisma 7 does not run the seed from `migrate reset`, even with
+  # migrations.seed set in prisma.config.ts, so the reset above leaves every
+  # table empty: no demo users, no stores. The run starts from the state
+  # lesson 7's run started from only if the seed runs too.
+  pnpm --filter @erp/database exec prisma db seed >>"$log" 2>&1 ||
+    fail "database seed failed for #$n; see $log"
   : >"$events"
 
   git switch -c "$branch" --quiet
