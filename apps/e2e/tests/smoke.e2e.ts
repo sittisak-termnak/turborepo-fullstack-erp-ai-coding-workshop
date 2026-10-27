@@ -5,8 +5,8 @@ import { expect, test } from '@playwright/test';
 test('the login page renders', async ({ page }) => {
   await page.goto('/login');
 
-  await expect(page.getByText('ERP Workshop')).toBeVisible();
-  await expect(page.getByLabel('Email')).toBeVisible();
-  await expect(page.getByLabel('Password')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Sign in' })).toBeVisible();
+  await expect(page.getByText('ระบบจัดการธุรกิจค้าปลีก')).toBeVisible();
+  await expect(page.getByLabel('อีเมล')).toBeVisible();
+  await expect(page.getByLabel('รหัสผ่าน')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'เข้าสู่ระบบ' })).toBeVisible();
 });
