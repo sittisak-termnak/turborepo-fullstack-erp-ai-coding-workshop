@@ -3,6 +3,7 @@ import type { User } from '@erp/contracts';
 import { call } from '@orpc/server';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AuditController } from '../audit/audit.controller.js';
+import type { Env } from '../config/env.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { StoresController } from './stores.controller.js';
 
@@ -32,7 +33,7 @@ describe.skipIf(!databaseUrl)('store-scoped authorisation (integration)', () => 
   beforeAll(async () => {
     prisma = new PrismaService({
       get: () => databaseUrl,
-    } as unknown as ConfigService);
+    } as unknown as ConfigService<Env, true>);
     stores = new StoresController(prisma);
     audit = new AuditController(prisma);
     staffB01 = await loadUser(prisma, 'staff_b01@erp.local');

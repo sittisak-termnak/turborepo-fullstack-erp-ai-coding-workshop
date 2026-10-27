@@ -46,12 +46,11 @@ describe('DEMO_STORES and store assignment', () => {
     expect(user && 'storeCode' in user ? user.storeCode : undefined).toBe(code);
   });
 
-  it.each([
-    'admin01@erp.local',
-    'buyer01@erp.local',
-    'manager01@erp.local',
-  ])('leaves the cross-store account %s unassigned', (email) => {
-    const user = DEMO_USERS.find((u) => u.email === email);
-    expect(user && 'storeCode' in user).toBe(false);
-  });
+  it.each(['admin01@erp.local', 'buyer01@erp.local', 'manager01@erp.local'])(
+    'leaves the cross-store account %s unassigned',
+    (email) => {
+      const user = DEMO_USERS.find((u) => u.email === email);
+      expect(user && 'storeCode' in user).toBe(false);
+    },
+  );
 });

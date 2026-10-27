@@ -57,7 +57,12 @@ export async function assertStoreAccess(
 export async function writeAudit(
   prisma: PrismaService,
   user: User,
-  entry: { action: string; target: string | null; outcome: 'ALLOWED' | 'REFUSED'; reason: string | null },
+  entry: {
+    action: string;
+    target: string | null;
+    outcome: 'ALLOWED' | 'REFUSED';
+    reason: string | null;
+  },
 ): Promise<void> {
   await prisma.auditLog.create({
     data: {

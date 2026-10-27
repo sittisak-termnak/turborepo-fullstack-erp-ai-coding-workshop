@@ -24,6 +24,17 @@ enum Role {
   MANAGER
 }
 
+/// A RetailOne branch (MD-03). `code` is the business key people type and read on documents
+/// (B01, B02); `id` stays internal so a code can be corrected without rewriting history.
+model Store {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -31,6 +42,41 @@ model User {
   /// Written by hashPassword() from @erp/database. Never returned by the API.
   passwordHash String
   role         Role     @default(STORE_EMPLOYEE)
+  /// At most one store assignment, by construction: one nullable column, not a join table.
+  /// Required for STORE_EMPLOYEE; absent for the cross-store roles (ADMINISTRATOR, MANAGER,
+  /// PURCHASING_OFFICER). The database cannot express "required for one role only", so the rule
+  /// is asserted where it is observable: the seed, and the handler assertions NFR-01 requires.
+  storeId      String?
+  store        Store?   @relation(fields: [storeId], references: [id])
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  @@index([storeId])
+}
+
+/// NFR-03: every authorisation outcome worth explaining later is recorded here. The first
+/// producer is an authorisation refusal, which is why this model arrives with the store rules.
+model AuditLog {
+  id         String       @id @default(cuid())
+  /// Who attempted it. Kept as a plain column, not a relation, so deleting a user never erases
+  /// the trail.
+  actorId    String
+  actorEmail String
+  actorRole  Role
+  /// What was attempted, e.g. `stores.read`.
+  action     String
+  /// Which entity was aimed at, e.g. a store code. Null when the action names no single target.
+  target     String?
+  outcome    AuditOutcome
+  /// Why it ended that way, in one line.
+  reason     String?
+  createdAt  DateTime     @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([createdAt])
+}
+
+enum AuditOutcome {
+  ALLOWED
+  REFUSED
 }

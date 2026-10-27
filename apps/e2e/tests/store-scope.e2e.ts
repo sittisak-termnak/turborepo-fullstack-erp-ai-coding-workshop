@@ -37,7 +37,10 @@ test.describe('store-scoped authorisation', () => {
           r.target === 'B02' &&
           r.outcome === 'REFUSED',
       );
-      expect(refusal, 'expected a REFUSED stores.read on B02 by staff_b01 in the audit trail').toBeDefined();
+      expect(
+        refusal,
+        'expected a REFUSED stores.read on B02 by staff_b01 in the audit trail',
+      ).toBeDefined();
 
       // The trail is sensitive: a store employee cannot read it.
       const staffAudit = await staff.get('/api/audit');
