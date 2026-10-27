@@ -15,6 +15,14 @@ const admin: User = {
   email: 'admin01@erp.local',
   name: 'Admin One',
   role: 'ADMINISTRATOR',
+  storeId: null,
+};
+const staff: User = {
+  id: 'u2',
+  email: 'staff_b01@erp.local',
+  name: 'Staff B01',
+  role: 'STORE_EMPLOYEE',
+  storeId: 'store-b01',
 };
 
 async function createController(findUnique = vi.fn()) {
@@ -94,6 +102,22 @@ describe('AuthController', () => {
 
     await expect(call(controller.me(admin), undefined)).resolves.toEqual({ user: admin });
     await expect(call(controller.me(undefined), undefined)).resolves.toEqual({ user: null });
+  });
+
+  it('reports the store assignment of a signed-in store employee', async () => {
+    const controller = await createController();
+
+    await expect(call(controller.me(staff), undefined)).resolves.toEqual({
+      user: { ...staff, storeId: 'store-b01' },
+    });
+  });
+
+  it('reports a null store assignment for a cross-store role', async () => {
+    const controller = await createController();
+
+    await expect(call(controller.me(admin), undefined)).resolves.toMatchObject({
+      user: { storeId: null },
+    });
   });
 
   // call() runs the contract's output validation, so a role the contract rejects fails here.

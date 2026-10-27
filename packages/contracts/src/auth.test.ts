@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { LoginInputSchema, RoleSchema, SessionSchema } from './auth.js';
+import { LoginInputSchema, RoleSchema, SessionSchema, UserSchema } from './auth.js';
 
 describe('RoleSchema', () => {
   // The four roles of TOR section 2. They are deliberately not nested: an Administrator
@@ -42,6 +42,24 @@ describe('LoginInputSchema', () => {
     const result = LoginInputSchema.safeParse({ email: 'admin@erp.local', password: '' });
 
     expect(result.success).toBe(false);
+  });
+});
+
+describe('UserSchema', () => {
+  const base = { id: '1', email: 'a@erp.local', name: 'A', role: 'STORE_EMPLOYEE' } as const;
+
+  it('carries a store assignment for a store employee', () => {
+    const result = UserSchema.safeParse({ ...base, storeId: 'store-b01' });
+
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.storeId).toBe('store-b01');
+  });
+
+  it('accepts a null store assignment for a cross-store role', () => {
+    const result = UserSchema.safeParse({ ...base, role: 'MANAGER', storeId: null });
+
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.storeId).toBeNull();
   });
 });
 
