@@ -29,6 +29,9 @@ coverage/
 .idea/
 *.swp
 
+# skill scratch: PR bodies and code-review output (lessons/07, 08)
+.agents/tasks/
+
 # AI reviewer output (lessons/08)
 .ai-review/
 
